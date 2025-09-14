@@ -1,142 +1,212 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - AyurTrace</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.umd.min.js"></script>
-    <!-- QR Code Libraries -->
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Poppins', sans-serif; background-color: #f8f9fa; }
-        .input { @apply block w-full px-4 py-2 mt-2 text-gray-700 bg-white border border-gray-200 rounded-md focus:border-indigo-400 focus:ring-indigo-300 focus:ring-opacity-40 focus:outline-none focus:ring; }
-        .btn-primary { @apply w-full px-6 py-2.5 text-sm font-medium tracking-wide text-white capitalize transition-colors duration-300 transform bg-indigo-600 rounded-lg hover:bg-indigo-500 focus:outline-none focus:ring focus:ring-indigo-300 focus:ring-opacity-50; }
-        .card { @apply bg-white p-6 rounded-2xl shadow-lg; }
+        body { font-family: 'Poppins', sans-serif; }
+        .timeline-item:last-child .timeline-line { display: none; }
+        .input {
+             border-color: #d1d5db; 
+             border-width: 1px;
+             padding: 0.5rem 0.75rem;
+             border-radius: 0.375rem;
+             box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
     </style>
 </head>
+<body class="bg-gray-100">
 
-<body>
-    <!-- Full-screen loader -->
     <div id="appLoader" class="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
         <div class="text-center">
             <div class="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-indigo-600 mx-auto"></div>
-            <h2 class="text-2xl font-semibold text-gray-700 mt-4">Loading Dashboard...</h2>
-            <p class="text-gray-500">Connecting to your account.</p>
+            <h2 class="text-2xl font-semibold text-gray-700 mt-4">Dashboard load ho raha hai...</h2>
+            <p class="text-gray-500">Blockchain se connect kar rahe hain.</p>
         </div>
     </div>
-
-    <!-- Main Application Container -->
-    <div id="appContainer" class="hidden">
-        <header class="bg-white shadow-md">
-            <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-                <h1 class="text-2xl font-bold text-gray-800">AyurTrace Dashboard</h1>
-                <div class="flex items-center space-x-4">
-                    <div class="text-right">
-                        <p id="userName" class="font-semibold text-gray-700"></p>
-                        <p id="userRole" class="text-sm text-gray-500"></p>
+    
+    <div id="appContent" class="hidden">
+        <header class="bg-white shadow-md sticky top-0 z-40">
+            <div class="container mx-auto px-4 py-3">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-xl font-bold text-gray-800">AyurTrace</h1>
+                    <div id="loggedInUser" class="text-center"></div>
+                    <div class="flex items-center space-x-4">
+                        <a href="settings.html" title="Settings" class="text-gray-600 hover:text-indigo-600">
+                           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </a>
+                        <button id="btnLogout" class="bg-red-500 text-white font-semibold px-4 py-2 rounded-lg hover:bg-red-600 text-sm">Logout</button>
                     </div>
-                    <button id="btnLogout" class="bg-red-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-red-600">Logout</button>
                 </div>
             </div>
         </header>
 
         <main class="container mx-auto p-4 md:p-6 space-y-6">
-            <!-- Search Section -->
-            <section class="card">
-                <h2 class="text-xl font-bold text-gray-800">Track a Batch</h2>
-                <div class="mt-4 flex flex-col sm:flex-row gap-4">
-                    <input id="searchInput" type="text" placeholder="Enter Batch ID to track" class="input flex-grow">
-                    <button id="btnSearch" class="btn-primary sm:w-auto">Search</button>
+            <section class="bg-white p-6 rounded-2xl shadow-lg">
+                <h2 class="text-xl font-bold text-gray-800 mb-2">📦 Track a Batch</h2>
+                <div class="flex gap-2">
+                    <input id="searchBatchId" type="text" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Yahan Batch ID daalein...">
+                    <button id="btnSearch" class="bg-indigo-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-indigo-700">Search</button>
                 </div>
-                <div id="searchResult" class="mt-4"></div>
             </section>
-
-            <!-- QR Code Scanner Section -->
-            <section id="scannerContainer" class="hidden card">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">Scan Batch ID QR Code</h2>
+            
+            <section id="searchResults" class="hidden bg-white p-6 rounded-2xl shadow-lg">
+                <h2 class="text-2xl font-bold text-gray-800">Supply Chain History</h2>
+                <p id="searchResultBatch" class="text-gray-500 mb-4">Batch ID: -</p>
+                <div id="searchResultTrace" class="relative pl-6 border-l-2 border-gray-200"></div>
+            </section>
+            
+             <section id="scannerContainer" class="hidden bg-white p-6 rounded-2xl shadow-lg">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 text-center">Scan Batch ID QR Code</h2>
                 <div id="qr-reader" class="w-full max-w-sm mx-auto border-2 border-dashed border-gray-300 rounded-lg overflow-hidden"></div>
                 <button id="closeScannerBtn" class="mt-4 mx-auto block bg-red-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-red-600">Close Scanner</button>
             </section>
 
-            <!-- Role-specific Dashboards -->
-            <div id="farmerDashboard" class="hidden card">
-                <h2 class="text-xl font-bold text-gray-800">Farmer: Create New Batch</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <input id="f_batchId" type="text" placeholder="New Batch ID (e.g., FR-001-TIMESTAMP)" class="input">
-                    <input id="f_cropName" type="text" placeholder="Crop Name" class="input">
-                    <input id="f_quantity" type="number" placeholder="Quantity (units)" class="input">
+            <div id="dashboardsContainer">
+                <div id="farmerDashboard" class="hidden space-y-6">
+                    <section class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">🌾 Create New Batch</h2>
+                        <div class="grid md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Crop Type</label>
+                                <input id="f_cropType" type="text" placeholder="e.g., Ashwagandha" class="mt-1 block w-full input">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Quantity (in kg)</label>
+                                <input id="f_quantity" type="number" placeholder="100" class="mt-1 block w-full input">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Farm Location</label>
+                                <input id="f_location" type="text" placeholder="Village, District" class="mt-1 block w-full input">
+                            </div>
+                        </div>
+                        <button id="btn_f_createBatch" class="mt-4 w-full sm:w-auto bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-indigo-700">Submit & Generate Batch ID</button>
+                        <div id="farmerFeedback" class="hidden mt-4 p-4 rounded-md text-sm"></div>
+                    </section>
                 </div>
-                <button id="btn_f_createBatch" class="mt-4 btn-primary">Create Batch</button>
-                <div id="farmerFeedback" class="hidden mt-4 p-4 rounded-md text-sm"></div>
+
+                <div id="collectorDashboard" class="hidden">
+                     <section class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">👷 Collect Batch</h2>
+                        <div class="grid md:grid-cols-3 gap-4">
+                             <div>
+                                <label class="block text-sm font-medium text-gray-700">Scan/Enter Farmer Batch ID</label>
+                                <div class="flex gap-2 mt-1">
+                                    <input id="c_batchId" type="text" placeholder="Pichla Batch ID" class="block w-full input">
+                                    <button id="c_scanBtn" class="bg-gray-200 text-gray-800 font-semibold p-2 rounded-lg hover:bg-gray-300">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-1.036.84-1.875 1.875-1.875h4.5c1.036 0 1.875.84 1.875 1.875v4.5c0 1.036-.84 1.875-1.875 1.875h-4.5A1.875 1.875 0 013.75 9.375v-4.5zM3.75 14.625c0-1.036.84-1.875 1.875-1.875h4.5c1.036 0 1.875.84 1.875 1.875v4.5c0 1.036-.84 1.875-1.875 1.875h-4.5A1.875 1.875 0 013.75 19.125v-4.5zM13.5 4.875c0-1.036.84-1.875 1.875-1.875h4.5c1.036 0 1.875.84 1.875 1.875v4.5c0 1.036-.84 1.875-1.875 1.875h-4.5A1.875 1.875 0 0113.5 9.375v-4.5zM13.5 14.625c0-1.036.84-1.875 1.875-1.875h4.5c1.036 0 1.875.84 1.875 1.875v4.5c0 1.036-.84 1.875-1.875 1.875h-4.5a1.875 1.875 0 01-1.875-1.875v-4.5z"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                             <div>
+                                <label class="block text-sm font-medium text-gray-700">Crop Name</label>
+                                <input id="c_cropName" type="text" placeholder="e.g., Ashwagandha" class="mt-1 block w-full input">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Quantity Received (kg)</label>
+                                <input id="c_quantity" type="number" placeholder="100" class="mt-1 block w-full input">
+                            </div>
+                        </div>
+                        <button id="btn_c_forward" class="mt-4 w-full sm:w-auto bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-indigo-700">Confirm & Forward</button>
+                        <div id="collectorFeedback" class="hidden mt-4 p-4 rounded-md text-sm"></div>
+                    </section>
+                </div>
+
+                 <div id="auditorDashboard" class="hidden">
+                     <section class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">🕵️ Inspect Batch</h2>
+                         <div class="grid md:grid-cols-3 gap-4">
+                             <div>
+                                <label class="block text-sm font-medium text-gray-700">Scan/Enter Batch ID</label>
+                                 <div class="flex gap-2 mt-1">
+                                    <input id="a_batchId" type="text" placeholder="Batch ID to inspect" class="block w-full input">
+                                     <button id="a_scanBtn" class="bg-gray-200 text-gray-800 font-semibold p-2 rounded-lg hover:bg-gray-300">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-1.036.84-1.875 1.875-1.875h4.5c1.036 0 1.875.84 1.875 1.875v4.5c0 1.036-.84 1.875-1.875 1.875h-4.5A1.875 1.875 0 013.75 9.375v-4.5zM3.75 14.625c0-1.036.84-1.875 1.875-1.875h4.5c1.036 0 1.875.84 1.875 1.875v4.5c0 1.036-.84 1.875-1.875 1.875h-4.5A1.875 1.875 0 013.75 19.125v-4.5zM13.5 4.875c0-1.036.84-1.875 1.875-1.875h4.5c1.036 0 1.875.84 1.875 1.875v4.5c0 1.036-.84 1.875-1.875 1.875h-4.5A1.875 1.875 0 0113.5 9.375v-4.5zM13.5 14.625c0-1.036.84-1.875 1.875-1.875h4.5c1.036 0 1.875.84 1.875 1.875v4.5c0 1.036-.84 1.875-1.875 1.875h-4.5a1.875 1.875 0 01-1.875-1.875v-4.5z"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                             <div>
+                                <label class="block text-sm font-medium text-gray-700">Crop Name</label>
+                                <input id="a_cropName" type="text" placeholder="e.g., Ashwagandha" class="mt-1 block w-full input">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Quantity Inspected (kg)</label>
+                                <input id="a_quantity" type="number" placeholder="100" class="mt-1 block w-full input">
+                            </div>
+                        </div>
+                        <button id="btn_a_approve" class="mt-4 w-full sm:w-auto bg-green-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-green-700">Approve & Update Record</button>
+                        <div id="auditorFeedback" class="hidden mt-4 p-4 rounded-md text-sm"></div>
+                    </section>
+                </div>
+
+                 <div id="manufacturerDashboard" class="hidden">
+                     <section class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">🏭 Process New Batch</h2>
+                        <div class="grid md:grid-cols-3 gap-4">
+                             <div>
+                                <label class="block text-sm font-medium text-gray-700">Scan/Enter Batch ID</label>
+                                <div class="flex gap-2 mt-1">
+                                    <input id="m_batchId" type="text" placeholder="Approved Batch ID" class="block w-full input">
+                                    <button id="m_scanBtn" class="bg-gray-200 text-gray-800 font-semibold p-2 rounded-lg hover:bg-gray-300">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-1.036.84-1.875 1.875-1.875h4.5c1.036 0 1.875.84 1.875 1.875v4.5c0 1.036-.84 1.875-1.875 1.875h-4.5A1.875 1.875 0 013.75 9.375v-4.5zM3.75 14.625c0-1.036.84-1.875 1.875-1.875h4.5c1.036 0 1.875.84 1.875 1.875v4.5c0 1.036-.84 1.875-1.875 1.875h-4.5A1.875 1.875 0 013.75 19.125v-4.5zM13.5 4.875c0-1.036.84-1.875 1.875-1.875h4.5c1.036 0 1.875.84 1.875 1.875v4.5c0 1.036-.84 1.875-1.875 1.875h-4.5A1.875 1.875 0 0113.5 9.375v-4.5zM13.5 14.625c0-1.036.84-1.875 1.875-1.875h4.5c1.036 0 1.875.84 1.875 1.875v4.5c0 1.036-.84 1.875-1.875 1.875h-4.5a1.875 1.875 0 01-1.875-1.875v-4.5z"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Final Product Name</label>
+                                <input id="m_productName" type="text" placeholder="e.g., Ashwagandha Powder 500g" class="mt-1 block w-full input">
+                            </div>
+                             <div>
+                                <label class="block text-sm font-medium text-gray-700">Quantity Processed (units)</label>
+                                <input id="m_quantity" type="number" placeholder="e.g., 190" class="mt-1 block w-full input">
+                            </div>
+                             <div class="md:col-span-3">
+                                <label class="block text-sm font-medium text-gray-700">Unique Product ID (Optional)</label>
+                                <input id="m_productId" type="text" placeholder="e.g., PROD-ASHW-500-001" class="mt-1 block w-full input">
+                            </div>
+                        </div>
+                        <button id="btn_m_process" class="mt-4 w-full sm:w-auto bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-indigo-700">Submit & Generate Product Batch</button>
+                        <div id="manufacturerFeedback" class="hidden mt-4 p-4 rounded-md text-sm"></div>
+                    </section>
+                </div>
+
+                <div id="distributorDashboard" class="hidden">
+                     <section class="bg-white p-6 rounded-2xl shadow-lg">
+                        <h2 class="text-xl font-bold text-gray-800 mb-4">🚚 Receive & Dispatch Products</h2>
+                        <div class="grid md:grid-cols-3 gap-4">
+                             <div>
+                                <label class="block text-sm font-medium text-gray-700">Scan/Enter Product Batch ID</label>
+                                <div class="flex gap-2 mt-1">
+                                    <input id="d_batchId" type="text" placeholder="Product Batch ID from Manufacturer" class="block w-full input">
+                                     <button id="d_scanBtn" class="bg-gray-200 text-gray-800 font-semibold p-2 rounded-lg hover:bg-gray-300">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-1.036.84-1.875 1.875-1.875h4.5c1.036 0 1.875.84 1.875 1.875v4.5c0 1.036-.84 1.875-1.875 1.875h-4.5A1.875 1.875 0 013.75 9.375v-4.5zM3.75 14.625c0-1.036.84-1.875 1.875-1.875h4.5c1.036 0 1.875.84 1.875 1.875v4.5c0 1.036-.84 1.875-1.875 1.875h-4.5A1.875 1.875 0 013.75 19.125v-4.5zM13.5 4.875c0-1.036.84-1.875 1.875-1.875h4.5c1.036 0 1.875.84 1.875 1.875v4.5c0 1.036-.84 1.875-1.875 1.875h-4.5A1.875 1.875 0 0113.5 9.375v-4.5zM13.5 14.625c0-1.036.84-1.875 1.875-1.875h4.5c1.036 0 1.875.84 1.875 1.875v4.5c0 1.036-.84 1.875-1.875 1.875h-4.5a1.875 1.875 0 01-1.875-1.875v-4.5z"></path></svg>
+                                    </button>
+                                </div>
+                            </div>
+                             <div>
+                                <label class="block text-sm font-medium text-gray-700">Product Name</label>
+                                <input id="d_productName" type="text" placeholder="e.g., Ashwagandha Powder 500g" class="mt-1 block w-full input">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Quantity Received (units)</label>
+                                <input id="d_quantity" type="number" placeholder="190" class="mt-1 block w-full input">
+                            </div>
+                        </div>
+                        <button id="btn_d_receive" class="mt-4 w-full sm:w-auto bg-indigo-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-indigo-700">Confirm & Add to Inventory</button>
+                        <div id="distributorFeedback" class="hidden mt-4 p-4 rounded-md text-sm"></div>
+                    </section>
+                </div>
             </div>
 
-            <div id="collectorDashboard" class="hidden card">
-                <h2 class="text-xl font-bold text-gray-800">Collector: Receive Batch</h2>
-                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <input id="c_batchId" type="text" placeholder="Previous Batch ID" class="input col-span-2">
-                    <button id="c_scanBtn" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 col-span-2">Scan QR</button>
-                    <input id="c_cropName" type="text" placeholder="Crop Name" class="input">
-                    <input id="c_quantity" type="number" placeholder="Quantity Received" class="input">
-                </div>
-                <button id="btn_c_forward" class="mt-4 btn-primary">Receive and Forward</button>
-                <div id="collectorFeedback" class="hidden mt-4 p-4 rounded-md text-sm"></div>
-            </div>
-
-            <div id="auditorDashboard" class="hidden card">
-                 <h2 class="text-xl font-bold text-gray-800">Auditor: Approve Batch</h2>
-                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <input id="a_batchId" type="text" placeholder="Batch ID from Collector" class="input col-span-2">
-                    <button id="a_scanBtn" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 col-span-2">Scan QR</button>
-                    <input id="a_cropName" type="text" placeholder="Crop Name" class="input">
-                    <input id="a_quantity" type="number" placeholder="Quantity Approved" class="input">
-                </div>
-                <button id="btn_a_approve" class="mt-4 btn-primary">Approve Batch</button>
-                <div id="auditorFeedback" class="hidden mt-4 p-4 rounded-md text-sm"></div>
-            </div>
-            
-            <div id="manufacturerDashboard" class="hidden card">
-                <h2 class="text-xl font-bold text-gray-800">Manufacturer: Process Batch</h2>
-                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <input id="m_batchId" type="text" placeholder="Batch ID from Auditor" class="input col-span-2">
-                     <button id="m_scanBtn" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 col-span-2">Scan QR</button>
-                    <input id="m_cropName" type="text" placeholder="Product Name" class="input">
-                    <input id="m_quantity" type="number" placeholder="Final Product Quantity" class="input">
-                    <input id="m_productId" type="text" placeholder="Final Product ID (e.g., AYUR-PROD-123)" class="input col-span-2">
-                </div>
-                <button id="btn_m_process" class="mt-4 btn-primary">Submit & Generate Product Batch</button>
-                <div id="manufacturerFeedback" class="hidden mt-4 p-4 rounded-md text-sm"></div>
-
-                <!-- Final QR Code Result -->
-                <div id="manufacturerResult" class="hidden mt-6 p-6 border-2 border-dashed border-green-400 bg-green-50 rounded-lg text-center">
-                    <h3 class="text-lg font-bold text-green-800">Product Batch Created!</h3>
-                    <p class="text-gray-600">Use this QR code for the final product packaging.</p>
-                    <canvas id="finalQrCanvas" class="mx-auto my-4 border"></canvas>
-                    <p class="font-semibold text-gray-800">Shareable Tracking Link:</p>
-                    <a id="finalQrLink" href="#" target="_blank" class="text-indigo-600 break-all hover:underline"></a>
-                </div>
-            </div>
-
-            <div id="distributorDashboard" class="hidden card">
-                <h2 class="text-xl font-bold text-gray-800">Distributor: Receive for Distribution</h2>
-                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <input id="d_batchId" type="text" placeholder="Batch ID from Manufacturer" class="input col-span-2">
-                     <button id="d_scanBtn" class="bg-gray-200 text-gray-800 font-semibold py-2 px-4 rounded-lg hover:bg-gray-300 col-span-2">Scan QR</button>
-                    <input id="d_cropName" type="text" placeholder="Product Name" class="input">
-                    <input id="d_quantity" type="number" placeholder="Quantity Received" class="input">
-                </div>
-                <button id="btn_d_receive" class="mt-4 btn-primary">Receive Product</button>
-                <div id="distributorFeedback" class="hidden mt-4 p-4 rounded-md text-sm"></div>
-            </div>
-
-            <!-- Previous Activity Section -->
-            <section class="card">
-                <h2 class="text-xl font-bold text-gray-800">Your Previous Batches</h2>
-                <div id="previousActivity" class="mt-4 text-gray-600">
-                    <p>No recent activity.</p>
+             <section id="previousActivitySection" class="bg-white p-6 rounded-2xl shadow-lg">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">My Batch History</h2>
+                <div id="previousActivityGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 </div>
             </section>
         </main>
@@ -144,252 +214,331 @@
 
     <script src="config.js"></script>
     <script>
-        const ROLES = { 0: "Unknown", 1: "Farmer", 2: "Collector", 3: "Auditor", 4: "Manufacturer", 5: "Distributor" };
+    // --- App Initialization and Auth Guard ---
+    let App;
+    document.addEventListener('DOMContentLoaded', () => {
+        // CORRECTED AUTHENTICATION LOGIC
+        const currentUserKey = sessionStorage.getItem('ayurtrace_currentUserKey');
+        if (!currentUserKey) {
+            window.location.href = 'login.html';
+            return;
+        }
+        
+        const userData = JSON.parse(localStorage.getItem(currentUserKey));
+        if (!userData) {
+            sessionStorage.removeItem('ayurtrace_currentUserKey');
+            window.location.href = 'login.html';
+            return;
+        }
+        App.init(userData);
+    });
+    
+    // --- Smart Contract and Blockchain Configuration ---
+    const Blockchain = {
+        provider: null, wallet: null, contract: null,
+        ROLES: { 0: "Unknown", 1: "Farmer", 2: "Collector", 3: "Auditor", 4: "Manufacturer", 5: "Distributor" },
+        ROLE_ICONS: { 1: "🌾", 2: "👷", 3: "🕵️", 4: "🏭", 5: "🚚" },
 
-        const Blockchain = {
-            provider: null,
-            signer: null,
-            contract: null,
+        async init() {
+            try {
+                this.provider = new ethers.JsonRpcProvider(AppConfig.GANACHE_URL);
+                this.wallet = new ethers.Wallet(AppConfig.SENDER_PRIVATE_KEY, this.provider);
+                this.contract = new ethers.Contract(AppConfig.CONTRACT_ADDRESS, AppConfig.CONTRACT_ABI, this.wallet);
+                await this.provider.getBlockNumber();
+                return true;
+            } catch (e) {
+                console.error("Blockchain connection failed:", e);
+                alert("Could not connect to the blockchain. Please check the RPC URL in config.js and make sure your node is running.");
+                document.getElementById('appLoader').classList.add('hidden');
+                return false;
+            }
+        },
 
-            async init() {
-                if (typeof window.ethereum === 'undefined') {
-                    throw new Error("MetaMask is not installed.");
-                }
-                this.provider = new ethers.BrowserProvider(window.ethereum);
-                this.signer = await this.provider.getSigner();
-                this.contract = new ethers.Contract(AppConfig.CONTRACT_ADDRESS, AppConfig.CONTRACT_ABI, this.signer);
-            },
+        async handleTransaction(txPromise, feedbackElId) {
+            App.showFeedback(feedbackElId, 'Transaction bhej rahe hain...', 'info');
+            try {
+                const tx = await txPromise;
+                App.showFeedback(feedbackElId, `Transaction sent! Confirmation ka intezaar...`, 'info');
+                const receipt = await tx.wait();
+                App.showFeedback(feedbackElId, `Transaction safal!`, 'success');
+                return receipt;
+            } catch (e) {
+                const reason = e.reason || e.message || "Transaction fail ho gaya.";
+                App.showFeedback(feedbackElId, `Error: ${reason}`, 'error');
+                return null;
+            }
+        }
+    };
 
-            async handleTransaction(txPromise, feedbackId) {
-                const feedbackEl = document.getElementById(feedbackId);
-                feedbackEl.className = "mt-4 p-4 rounded-md text-sm bg-yellow-100 text-yellow-800";
-                feedbackEl.textContent = "Processing transaction... please wait.";
-                feedbackEl.classList.remove('hidden');
+    // --- Main App Logic ---
+    App = {
+        currentUser: null,
+        html5QrCode: null,
 
-                try {
-                    const tx = await txPromise;
-                    feedbackEl.textContent = "Transaction sent! Waiting for confirmation...";
-                    const receipt = await tx.wait();
-                    feedbackEl.className = "mt-4 p-4 rounded-md text-sm bg-green-100 text-green-800";
-                    feedbackEl.textContent = `Success! Transaction confirmed in block ${receipt.blockNumber}.`;
-                    return receipt;
-                } catch (error) {
-                    console.error("Transaction failed:", error);
-                    feedbackEl.className = "mt-4 p-4 rounded-md text-sm bg-red-100 text-red-800";
-                    feedbackEl.textContent = `Error: ${error.reason || error.message || "Transaction rejected."}`;
-                    return null;
+        async init(userData) {
+            this.currentUser = userData;
+            const connected = await Blockchain.init();
+            
+            document.getElementById('appLoader').classList.add('hidden');
+            document.getElementById('appContent').classList.remove('hidden');
+
+            if (connected) {
+                this.setupEventListeners();
+                this.renderDashboard();
+                const hash = window.location.hash;
+                if (hash.startsWith('#search=')) {
+                    const searchId = decodeURIComponent(hash.substring(8));
+                    document.getElementById('searchBatchId').value = searchId;
+                    this.search();
                 }
             }
-        };
+        },
+        
+        setupEventListeners() {
+            document.getElementById('btnLogout').addEventListener('click', () => this.logout());
+            document.getElementById('btnSearch').addEventListener('click', () => this.search());
 
-        const App = {
-            currentUser: null,
-            html5QrCode: null,
+            // QR Scanner event listeners
+            document.getElementById('closeScannerBtn').addEventListener('click', () => this.stopScanner());
+            const scanConfig = {
+                2: { btn: 'c_scanBtn', input: 'c_batchId' }, 3: { btn: 'a_scanBtn', input: 'a_batchId' },
+                4: { btn: 'm_scanBtn', input: 'm_batchId' }, 5: { btn: 'd_scanBtn', input: 'd_batchId' }
+            };
+            if (scanConfig[this.currentUser.role]) {
+                const { btn, input } = scanConfig[this.currentUser.role];
+                document.getElementById(btn).addEventListener('click', () => this.startScanner(input));
+            }
 
-            async init(userData) {
-                this.currentUser = userData;
-                try {
-                    await Blockchain.init();
-                    this.renderDashboard();
-                    this.setupEventListeners();
-                    this.displayPreviousActivity();
-                } catch (error) {
-                    alert(error.message);
-                    window.location.href = 'login.html';
-                } finally {
-                    document.getElementById('appLoader').classList.add('hidden');
-                    document.getElementById('appContainer').classList.remove('hidden');
-                }
-            },
-
-            renderDashboard() {
-                document.getElementById('userName').textContent = this.currentUser.name;
-                document.getElementById('userRole').textContent = `Role: ${ROLES[this.currentUser.role]}`;
-                const dashboardId = {
-                    1: 'farmerDashboard', 2: 'collectorDashboard', 3: 'auditorDashboard',
-                    4: 'manufacturerDashboard', 5: 'distributorDashboard'
-                }[this.currentUser.role];
-                if (dashboardId) {
-                    document.getElementById(dashboardId).classList.remove('hidden');
-                }
-            },
-
-            setupEventListeners() {
-                document.getElementById('btnLogout').addEventListener('click', () => this.logout());
-                document.getElementById('btnSearch').addEventListener('click', () => this.search());
-                
-                // QR Scanner Event Listeners
-                document.getElementById('closeScannerBtn').addEventListener('click', () => this.stopScanner());
-                const scanConfig = {
-                    2: { btn: 'c_scanBtn', input: 'c_batchId' }, 3: { btn: 'a_scanBtn', input: 'a_batchId' },
-                    4: { btn: 'm_scanBtn', input: 'm_batchId' }, 5: { btn: 'd_scanBtn', input: 'd_batchId' }
-                };
-                if (scanConfig[this.currentUser.role]) {
-                    const { btn, input } = scanConfig[this.currentUser.role];
-                    document.getElementById(btn).addEventListener('click', () => this.startScanner(input));
-                }
-
-                // Role-specific action buttons
-                if (this.currentUser.role === 1) document.getElementById('btn_f_createBatch').addEventListener('click', () => this.farmer_createBatch());
-                if (this.currentUser.role >= 2 && this.currentUser.role <= 5) {
-                    const buttonId = { 2: 'btn_c_forward', 3: 'btn_a_approve', 4: 'btn_m_process', 5: 'btn_d_receive' }[this.currentUser.role];
-                    document.getElementById(buttonId).addEventListener('click', () => this.stakeholder_submitBlock());
-                }
-            },
-
-            startScanner(targetInputId) {
-                document.getElementById('scannerContainer').classList.remove('hidden');
-                this.html5QrCode = new Html5Qrcode("qr-reader");
-                const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-                
-                const onScanSuccess = (decodedText, decodedResult) => {
-                    document.getElementById(targetInputId).value = decodedText;
-                    this.stopScanner();
-                };
-
-                this.html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
-                    .catch(err => {
-                        console.error("Unable to start scanning.", err);
-                        this.stopScanner();
-                        alert("Could not start QR scanner. Please ensure camera permissions are granted.");
-                    });
-            },
-
-            stopScanner() {
-                if (this.html5QrCode && this.html5QrCode.isScanning) {
-                    this.html5QrCode.stop().then(() => {
-                        document.getElementById('scannerContainer').classList.add('hidden');
-                    }).catch(err => console.error("Failed to stop scanner", err));
-                } else {
-                    document.getElementById('scannerContainer').classList.add('hidden');
-                }
-            },
+            // Role-specific action buttons
+            if(this.currentUser.role === 1) document.getElementById('btn_f_createBatch').addEventListener('click', () => this.farmer_createBatch());
+            if(this.currentUser.role >= 2 && this.currentUser.role <= 5) {
+                const buttonId = {2: 'btn_c_forward', 3: 'btn_a_approve', 4: 'btn_m_process', 5: 'btn_d_receive'}[this.currentUser.role];
+                document.getElementById(buttonId).addEventListener('click', () => this.stakeholder_submitBlock());
+            }
+        },
+        
+        startScanner(targetInputId) {
+            document.getElementById('scannerContainer').classList.remove('hidden');
+            this.html5QrCode = new Html5Qrcode("qr-reader");
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
             
-            async search() {
-                const batchId = document.getElementById('searchInput').value;
-                const resultDiv = document.getElementById('searchResult');
-                if (!batchId) {
-                    resultDiv.innerHTML = '<p class="text-red-500">Please enter a Batch ID.</p>';
+            const onScanSuccess = (decodedText, decodedResult) => {
+                document.getElementById(targetInputId).value = decodedText;
+                this.stopScanner();
+                window.scrollTo(0, 0); // Scroll to top after scan
+            };
+
+            this.html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
+                .catch(err => {
+                    console.error("Unable to start scanning.", err);
+                    this.stopScanner();
+                    alert("Could not start QR scanner. Please ensure camera permissions are granted.");
+                });
+        },
+
+        stopScanner() {
+            if (this.html5QrCode && this.html5QrCode.isScanning) {
+                this.html5QrCode.stop().then(() => {
+                    document.getElementById('scannerContainer').classList.add('hidden');
+                }).catch(err => console.error("Failed to stop scanner", err));
+            } else {
+                document.getElementById('scannerContainer').classList.add('hidden');
+            }
+        },
+
+        showFeedback(elId, message, type) {
+            const el = document.getElementById(elId);
+            el.className = 'p-4 rounded-md text-sm mt-4';
+            if (type === 'success') el.classList.add('bg-green-100', 'text-green-800');
+            else if (type === 'error') el.classList.add('bg-red-100', 'text-red-800');
+            else el.classList.add('bg-blue-100', 'text-blue-800');
+            el.innerHTML = message;
+            el.style.display = 'block';
+        },
+        
+        logout() {
+            sessionStorage.removeItem('ayurtrace_currentUserKey');
+            window.location.href = 'login.html';
+        },
+
+        renderDashboard() {
+            const { actorId, role, fullName } = this.currentUser;
+            document.getElementById('loggedInUser').innerHTML = `
+                <p class="font-semibold text-gray-800">${fullName}</p>
+                <p class="text-xs text-gray-500">${actorId} <span class="font-bold text-indigo-600">${Blockchain.ROLES[role]}</span></p>
+            `;
+            
+            document.querySelectorAll('#dashboardsContainer > div').forEach(d => d.classList.add('hidden'));
+
+            const roleDashboardMap = {1: 'farmerDashboard', 2: 'collectorDashboard', 3: 'auditorDashboard', 4: 'manufacturerDashboard', 5: 'distributorDashboard'};
+            const dashboardId = roleDashboardMap[role];
+            if(dashboardId) document.getElementById(dashboardId).classList.remove('hidden');
+            
+            this.displayPreviousActivity();
+        },
+        
+        async farmer_createBatch() {
+            const cropName = document.getElementById('f_cropType').value.trim();
+            const quantity = document.getElementById('f_quantity').value;
+            const location = document.getElementById('f_location').value.trim();
+            
+            if (!cropName || !quantity || !location) return this.showFeedback('farmerFeedback', "Kripya sabhi fields bharein.", 'error');
+
+            const txPromise = Blockchain.contract.createFarmerBlockAutoBatch(this.currentUser.actorId, String(Date.now()), cropName, parseInt(quantity), location);
+            const receipt = await Blockchain.handleTransaction(txPromise, 'farmerFeedback');
+
+            if (receipt && receipt.logs) {
+                 const blockCreatedTopic = Blockchain.contract.interface.getEvent("BlockCreated").topicHash;
+                 const log = receipt.logs.find(l => l.topics[0] === blockCreatedTopic);
+                 if(log) {
+                    const event = Blockchain.contract.interface.parseLog(log);
+                    const batchId = event.args.batchId;
+                    this.showFeedback('farmerFeedback', `<strong>Safal! Aapka naya Batch ID hai: ${batchId}</strong>`, 'success');
+                    this.addBatchToLocalStorage(batchId);
+                    this.displayPreviousActivity();
+                 }
+            }
+        },
+
+        async stakeholder_submitBlock(){
+            const role = this.currentUser.role;
+            const p = { 2: 'c', 3: 'a', 4: 'm', 5: 'd' }[role];
+            
+            const batchId = document.getElementById(`${p}_batchId`).value.trim();
+            const productName = document.getElementById(`${p}_${role > 3 ? 'productName' : 'cropName'}`).value.trim();
+            const quantity = document.getElementById(`${p}_quantity`).value;
+            const feedbackId = `${Blockchain.ROLES[role].toLowerCase()}Feedback`;
+
+            if(!batchId || !productName || !quantity) return this.showFeedback(feedbackId, "Kripya saare zaroori fields bharein.", 'error');
+
+            let prevIndex;
+            try {
+                this.showFeedback(feedbackId, `Pichle batch ki jaankari check kar rahe hain...`, 'info');
+                const chain = await Blockchain.contract.getFullChainByBatch(batchId);
+                if (!chain || chain.length === 0) throw new Error("Batch not found");
+                prevIndex = chain[chain.length - 1].index;
+            } catch(e) {
+                 return this.showFeedback(feedbackId, `Error: Batch ID "${batchId}" nahi mila.`, 'error');
+            }
+
+            let txPromise;
+            const commonArgs = [this.currentUser.actorId, String(Date.now()), productName, parseInt(quantity), this.currentUser.address, batchId, prevIndex];
+
+            switch(role) {
+                case 2: txPromise = Blockchain.contract.createCollectorBlock(...commonArgs); break;
+                case 3: txPromise = Blockchain.contract.createAuditorBlock(...commonArgs); break;
+                case 4: 
+                    const productId = document.getElementById('m_productId').value.trim();
+                    txPromise = Blockchain.contract.createManufacturerBlock(...commonArgs, productId || ''); 
+                    break;
+                case 5: txPromise = Blockchain.contract.createDistributorBlock(...commonArgs); break;
+            }
+            
+            const receipt = await Blockchain.handleTransaction(txPromise, feedbackId);
+             if (receipt) {
+                 this.addBatchToLocalStorage(batchId);
+                 this.displayPreviousActivity();
+             }
+        },
+
+        async search() {
+            const batchId = document.getElementById('searchBatchId').value.trim();
+            if (!batchId) return;
+
+            const resultsEl = document.getElementById('searchResults');
+            const traceContainer = document.getElementById('searchResultTrace');
+            traceContainer.innerHTML = '<p>Blockchain se data la rahe hain...</p>';
+            resultsEl.classList.remove('hidden');
+
+            try {
+                const chain = await Blockchain.contract.getFullChainByBatch(batchId);
+                if (!chain || chain.length === 0) {
+                    traceContainer.innerHTML = `<p class="text-red-500">Is ID ke liye koi record nahi mila: ${batchId}</p>`;
                     return;
                 }
-                resultDiv.innerHTML = '<p class="text-gray-500">Searching...</p>';
+                document.getElementById('searchResultBatch').textContent = `Batch ID: ${chain[0].batchId}`;
+                this.renderChain(chain, traceContainer);
+            } catch (e) {
+                traceContainer.innerHTML = `<p class="text-red-600">Error: Data nahi mil paya. Check the Batch ID and your blockchain connection.</p>`;
+            }
+        },
+
+        renderChain(chain, container) {
+            let html = '';
+            chain.forEach(block => {
+                const timestamp = new Date(Number(block.createdAt) * 1000).toLocaleString();
+                html += `
+                <div class="timeline-item flex gap-4 pb-8">
+                    <div class="flex flex-col items-center">
+                        <div class="bg-indigo-500 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl">${Blockchain.ROLE_ICONS[block.role]}</div>
+                        <div class="timeline-line w-0.5 h-full bg-gray-200"></div>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg flex-1">
+                        <p class="font-bold text-gray-800">${Blockchain.ROLES[block.role]} Action</p>
+                        <p class="text-sm text-gray-500">By <strong>${block.name}</strong> (${block.actorId}) at ${block.addr || 'N/A'}</p>
+                        <p class="text-xs text-gray-400 mb-2">${timestamp}</p>
+                        <div class="text-sm">
+                           <p><strong>Product:</strong> ${block.cropName}</p>
+                           <p><strong>Quantity:</strong> ${block.quantity.toString()}</p>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        },
+
+        addBatchToLocalStorage(batchId) {
+            const key = `ayurtrace_batches_${this.currentUser.actorId}`;
+            let batches = JSON.parse(localStorage.getItem(key)) || [];
+            if (!batches.includes(batchId)) {
+                batches.unshift(batchId);
+                localStorage.setItem(key, JSON.stringify(batches.slice(0, 12))); 
+            }
+        },
+
+        async displayPreviousActivity() {
+            const grid = document.getElementById('previousActivityGrid');
+            const key = `ayurtrace_batches_${this.currentUser.actorId}`;
+            const localBatches = JSON.parse(localStorage.getItem(key)) || [];
+            
+            grid.innerHTML = '<p class="col-span-full text-center text-gray-500">Checking batch history from blockchain...</p>';
+
+            const verifiedBatches = [];
+
+            for (const batchId of localBatches) {
                 try {
                     const chain = await Blockchain.contract.getFullChainByBatch(batchId);
-                    if (chain.length === 0) {
-                        resultDiv.innerHTML = `<p class="text-orange-500">No records found for Batch ID: ${batchId}</p>`;
-                        return;
+                    if (chain && chain.length > 0) {
+                        verifiedBatches.push(batchId);
                     }
-                    let html = chain.map(block => {
-                        const ts = new Date(Number(block.createdAt) * 1000).toLocaleString();
-                        return `<div class="p-2 border-b">
-                                    <p><strong>${ROLES[block.role]}</strong> by ${block.name} on ${ts}</p>
-                                    <p>Crop: ${block.cropName}, Qty: ${block.quantity.toString()}</p>
-                                </div>`;
-                    }).join('');
-                    resultDiv.innerHTML = html;
                 } catch (e) {
-                    resultDiv.innerHTML = `<p class="text-red-500">Error fetching data for Batch ID ${batchId}.</p>`;
+                    console.warn(`Batch ID ${batchId} from local history not found on the blockchain.`);
                 }
-            },
+            }
 
-            async farmer_createBatch() {
-                const batchId = document.getElementById('f_batchId').value;
-                const cropName = document.getElementById('f_cropName').value;
-                const quantity = document.getElementById('f_quantity').value;
-                if (!batchId || !cropName || !quantity) {
-                    alert("Please fill all fields."); return;
-                }
-                const txPromise = Blockchain.contract.createFarmerBlock(batchId, this.currentUser.name, cropName, quantity);
-                const receipt = await Blockchain.handleTransaction(txPromise, 'farmerFeedback');
-                if(receipt) {
-                    this.addBatchToLocalStorage(batchId);
-                    this.displayPreviousActivity();
-                }
-            },
-
-            async stakeholder_submitBlock() {
-                const role = this.currentUser.role;
-                const prefix = { 2: 'c', 3: 'a', 4: 'm', 5: 'd' }[role];
-                const batchId = document.getElementById(`${prefix}_batchId`).value.trim();
-                const cropName = document.getElementById(`${prefix}_cropName`).value.trim();
-                const quantity = document.getElementById(`${prefix}_quantity`).value.trim();
-                const feedbackId = { 2: 'collectorFeedback', 3: 'auditorFeedback', 4: 'manufacturerFeedback', 5: 'distributorFeedback'}[role];
-                
-                if (!batchId || !cropName || !quantity) {
-                    alert("Please fill all fields for your role."); return;
-                }
-
-                let txPromise;
-                const commonArgs = [batchId, this.currentUser.name, cropName, quantity];
-                switch (role) {
-                    case 2: txPromise = Blockchain.contract.createCollectorBlock(...commonArgs); break;
-                    case 3: txPromise = Blockchain.contract.createAuditorBlock(...commonArgs); break;
-                    case 4:
-                        const productId = document.getElementById('m_productId').value.trim();
-                        txPromise = Blockchain.contract.createManufacturerBlock(...commonArgs, productId || '');
-                        document.getElementById('manufacturerResult').classList.add('hidden'); // Hide previous results
-                        break;
-                    case 5: txPromise = Blockchain.contract.createDistributorBlock(...commonArgs); break;
-                }
-
-                const receipt = await Blockchain.handleTransaction(txPromise, feedbackId);
-                if (receipt) {
-                    this.addBatchToLocalStorage(batchId);
-                    this.displayPreviousActivity();
-
-                    // Generate QR code for Manufacturer
-                    if (role === 4) {
-                        const resultDiv = document.getElementById('manufacturerResult');
-                        const canvas = document.getElementById('finalQrCanvas');
-                        const link = document.getElementById('finalQrLink');
-                        
-                        const publicUrl = `https://ranveersingh18w.github.io/Sih-prototype/search.html#${encodeURIComponent(batchId)}`;
-                        
-                        link.href = publicUrl;
-                        link.textContent = publicUrl;
-                        
-                        QRCode.toCanvas(canvas, publicUrl, { width: 220, margin: 2 }, function (error) {
-                            if (error) console.error(error);
-                            resultDiv.classList.remove('hidden');
-                        });
-                    }
-                }
-            },
-
-            addBatchToLocalStorage(batchId) {
-                let batches = JSON.parse(localStorage.getItem(`batches_${this.currentUser.wallet}`) || '[]');
-                if (!batches.includes(batchId)) {
-                    batches.unshift(batchId);
-                }
-                localStorage.setItem(`batches_${this.currentUser.wallet}`, JSON.stringify(batches.slice(0, 10)));
-            },
+            localStorage.setItem(key, JSON.stringify(verifiedBatches));
             
-            displayPreviousActivity() {
-                const container = document.getElementById('previousActivity');
-                let batches = JSON.parse(localStorage.getItem(`batches_${this.currentUser.wallet}`) || '[]');
-                if (batches.length > 0) {
-                    container.innerHTML = batches.map(id => `<p class="p-2 border-b">${id}</p>`).join('');
-                } else {
-                    container.innerHTML = '<p>No recent activity to show.</p>';
-                }
-            },
-
-            logout() {
-                sessionStorage.removeItem('currentUser');
-                window.location.href = 'login.html';
-            }
-        };
-
-        // Initialize App on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            const userData = JSON.parse(sessionStorage.getItem('currentUser'));
-            if (userData) {
-                App.init(userData);
-            } else {
-                window.location.href = 'login.html';
-            }
-        });
-    </script>
+            grid.innerHTML = verifiedBatches.length === 0 ? '<p class="col-span-full text-center text-gray-500">Aapki abhi tak koi activity nahi hai.</p>' : '';
+            
+            verifiedBatches.forEach(batchId => {
+                const card = document.createElement('div');
+                card.className = 'text-center p-2 bg-gray-50 rounded-lg cursor-pointer hover:shadow-md';
+                card.onclick = () => { 
+                    document.getElementById('searchBatchId').value = batchId;
+                    this.search();
+                    window.scrollTo(0,0);
+                };
+                const canvas = document.createElement('canvas');
+                card.appendChild(canvas);
+                const idEl = document.createElement('p');
+                idEl.className = 'text-xs font-semibold text-gray-700 mt-2 break-all';
+                idEl.textContent = batchId;
+                card.appendChild(idEl);
+                grid.appendChild(card);
+                QRCode.toCanvas(canvas, batchId, { width: 150, margin: 1 });
+            });
+        }
+    };
+</script>
 </body>
-
 </html>
