@@ -3,95 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AyurTrace - Home</title>
+    <title>AyurTrace - Blockchain Supply Chain</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-        }
-        .hero-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
+        body { font-family: 'Poppins', sans-serif; }
+        .hero-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
     </style>
 </head>
 <body class="bg-gray-50">
 
-    <!-- Header -->
-    <header class="bg-white shadow-sm">
-        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <span class="text-2xl">🌿</span>
-                <h1 class="text-2xl font-bold text-gray-800">AyurTrace</h1>
-            </div>
-            <a href="login.html" class="bg-indigo-600 text-white font-semibold px-5 py-2 rounded-lg hover:bg-indigo-700 transition duration-300">
-                Login / Signup
-            </a>
-        </div>
-    </header>
-
-    <!-- Hero Section -->
     <main>
-        <section class="hero-bg text-white py-20 sm:py-32">
-            <div class="container mx-auto px-6 text-center">
-                <h2 class="text-4xl sm:text-5xl font-extrabold mb-4 leading-tight">Authenticity from Farm to Consumer.</h2>
-                <p class="text-lg sm:text-xl text-indigo-100 mb-10 max-w-3xl mx-auto">Track your product's complete journey on the blockchain. Enter the Batch ID below to see its story.</p>
+        <!-- Hero Section -->
+        <section class="hero-bg text-white h-screen flex items-center justify-center text-center">
+            <div class="max-w-3xl px-4">
+                <h1 class="text-5xl md:text-6xl font-bold mb-4">Authenticity from Farm to Consumer.</h1>
+                <p class="text-lg md:text-xl mb-8">
+                    Track your product's complete journey on the blockchain. Enter the Batch ID below to see its story.
+                </p>
                 
-                <!-- Search Form -->
-                <div class="max-w-2xl mx-auto">
-                    <div class="flex flex-col sm:flex-row gap-4 bg-white/20 p-4 rounded-xl backdrop-blur-sm">
-                        <input id="trackIdInput" type="text" placeholder="Enter Batch ID here..." class="w-full px-5 py-3 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-white transition duration-300">
-                        <button id="trackBtn" class="bg-white text-indigo-600 font-bold px-8 py-3 rounded-lg hover:bg-gray-100 transition duration-300 w-full sm:w-auto flex-shrink-0">
+                <!-- Updated Tracking Form -->
+                <div class="max-w-xl mx-auto">
+                    <form id="trackForm" class="flex flex-col sm:flex-row gap-4 p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                        <input id="batchIdInput" type="text" placeholder="Enter your product's Batch ID" 
+                               class="w-full px-5 py-3 text-gray-700 bg-white border-none rounded-lg focus:outline-none focus:ring-4 focus:ring-purple-300 transition" required>
+                        <button type="submit" class="px-8 py-3 font-semibold text-white bg-purple-600 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-4 focus:ring-purple-400 transition">
                             Track Product
                         </button>
-                    </div>
+                    </form>
                 </div>
-            </div>
-        </section>
 
-        <!-- Features Section -->
-        <section class="py-20">
-            <div class="container mx-auto px-6">
-                <div class="text-center mb-12">
-                     <h3 class="text-3xl font-bold text-gray-800">How It Works</h3>
-                     <p class="text-gray-500 mt-2">A simple, transparent, and secure process for everyone.</p>
-                </div>
-                <div class="grid md:grid-cols-3 gap-10 text-center">
-                    <div class="bg-white p-8 rounded-xl shadow-lg">
-                        <div class="text-4xl text-indigo-500 mb-4">🌾</div>
-                        <h4 class="text-xl font-semibold mb-2">1. Farmer Registers</h4>
-                        <p class="text-gray-600">Each harvest is registered on the blockchain, creating a unique digital identity (Batch ID).</p>
-                    </div>
-                    <div class="bg-white p-8 rounded-xl shadow-lg">
-                        <div class="text-4xl text-indigo-500 mb-4">🔗</div>
-                        <h4 class="text-xl font-semibold mb-2">2. Chain of Custody</h4>
-                        <p class="text-gray-600">Every stakeholder—from collector to distributor—updates the batch's status on the chain.</p>
-                    </div>
-                    <div class="bg-white p-8 rounded-xl shadow-lg">
-                        <div class="text-4xl text-indigo-500 mb-4">📱</div>
-                        <h4 class="text-xl font-semibold mb-2">3. Consumer Verifies</h4>
-                        <p class="text-gray-600">You can scan the QR code or enter the ID to view the product's entire journey.</p>
-                    </div>
+                <div class="mt-12">
+                    <a href="login.html" class="px-10 py-3 text-lg font-semibold bg-white text-purple-700 rounded-lg shadow-lg hover:bg-gray-100 transition">
+                        Stakeholder Login
+                    </a>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-6">
-        <div class="container mx-auto px-6 text-center">
-            <p>🌿 AyurTrace &copy; 2025</p>
-        </div>
-    </footer>
-
     <script>
-        document.getElementById('trackBtn').addEventListener('click', () => {
-            const trackId = document.getElementById('trackIdInput').value.trim();
-            if (trackId) {
-                // Redirect to the dashboard with the search parameter in the hash
-                window.location.href = `dashboard.html#search=${encodeURIComponent(trackId)}`;
+        document.getElementById('trackForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the default form submission
+            const batchId = document.getElementById('batchIdInput').value.trim();
+            if (batchId) {
+                // Redirect to the search page with the batch ID in the hash
+                window.location.href = `search.html#${encodeURIComponent(batchId)}`;
             } else {
-                alert('Please enter a Batch ID to track.');
+                alert('Please enter a Batch ID.');
             }
         });
     </script>
