@@ -3,132 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Track Product - AyurTrace</title>
+    <title>Product Trace - AyurTrace</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Poppins', sans-serif; }
-        .hero-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
         .timeline-item:last-child .timeline-line { display: none; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100">
 
-    <!-- App-wide Loader -->
     <div id="appLoader" class="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
         <div class="text-center">
             <div class="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-indigo-600 mx-auto"></div>
-            <h2 class="text-2xl font-semibold text-gray-700 mt-4">Tracking Product...</h2>
-            <p class="text-gray-500">Connecting to the blockchain to find its story.</p>
+            <h2 class="text-2xl font-semibold text-gray-700 mt-4">Loading Product History...</h2>
+            <p class="text-gray-500">Connecting to the blockchain.</p>
         </div>
     </div>
-
-    <main class="container mx-auto p-4 md:p-6 space-y-6">
-        <header class="text-center py-6">
-             <h1 class="text-4xl font-bold text-gray-800">AyurTrace Journey</h1>
-             <p class="text-gray-600">Authenticity from Farm to Consumer.</p>
+    
+    <div id="appContent" class="hidden">
+        <header class="bg-white shadow-md sticky top-0 z-40">
+            <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+                <a href="index.html" class="text-xl font-bold text-gray-800">AyurTrace</a>
+                <a href="login.html" class="bg-indigo-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-indigo-700 text-sm">Stakeholder Login</a>
+            </div>
         </header>
 
-        <!-- Search Results Section -->
-        <section id="searchResults" class="bg-white p-6 rounded-2xl shadow-lg">
-            <h2 class="text-2xl font-bold text-gray-800">Supply Chain History</h2>
-            <p id="searchResultBatch" class="text-gray-500 mb-6">Batch ID: -</p>
-            <div id="searchResultTrace" class="relative pl-6 border-l-2 border-indigo-200">
-                <!-- Timeline items will be injected here -->
-            </div>
-        </section>
-    </main>
+        <main class="container mx-auto p-4 md:p-6">
+            <section id="searchResults" class="bg-white p-6 rounded-2xl shadow-lg">
+                <h2 class="text-2xl font-bold text-gray-800">Supply Chain History</h2>
+                <p id="searchResultId" class="text-gray-500 mb-4">Serial Number: -</p>
+                <div id="searchResultTrace" class="relative pl-6 border-l-2 border-gray-200">
+                    <p>Enter a Serial Number in the URL (e.g., search.html#00125) to see the history.</p>
+                </div>
+            </section>
+        </main>
+    </div>
 
     <script src="config.js"></script>
     <script>
-        const SearchApp = {
-            provider: null,
-            contract: null,
-            ROLES: { 0: "Unknown", 1: "Farmer", 2: "Collector", 3: "Auditor", 4: "Manufacturer", 5: "Distributor" },
-            ROLE_ICONS: { 1: "🌾", 2: "🧺", 3: "🕵️", 4: "🏭", 5: "🚚" },
+    const App = {
+        async init() {
+            const connected = await Blockchain.init();
+            document.getElementById('appLoader').classList.add('hidden');
+            document.getElementById('appContent').classList.remove('hidden');
 
-            async init() {
-                try {
-                    this.provider = new ethers.JsonRpcProvider(AppConfig.GANACHE_URL);
-                    this.contract = new ethers.Contract(AppConfig.CONTRACT_ADDRESS, AppConfig.CONTRACT_ABI, this.provider);
-                    // Test connection
-                    await this.provider.getBlockNumber();
-                    this.handleSearchFromURL();
-                } catch (e) {
-                    console.error("Blockchain connection error:", e);
-                    this.showError("Could not connect to the blockchain. The service might be temporarily unavailable.");
-                }
-            },
-
-            handleSearchFromURL() {
-                const hash = window.location.hash;
-                if (hash && hash.startsWith('#')) {
-                    const batchId = decodeURIComponent(hash.substring(1));
-                    if(batchId) {
-                        this.search(batchId);
-                    } else {
-                         this.showError("No Batch ID was provided in the URL.");
-                    }
-                } else {
-                    this.showError("No product specified. Please scan a valid QR code or use a correct link to track a product.");
-                }
-            },
-            
-            showError(message) {
-                 document.getElementById('appLoader').classList.add('hidden');
-                 const traceContainer = document.getElementById('searchResultTrace');
-                 traceContainer.innerHTML = `<div class="text-center p-8"><p class="text-red-600 font-bold text-lg">${message}</p></div>`;
-            },
-
-            async search(batchId) {
-                const traceContainer = document.getElementById('searchResultTrace');
-                const batchIdContainer = document.getElementById('searchResultBatch');
-                batchIdContainer.textContent = `Batch ID: ${batchId}`;
-
-                try {
-                    const chain = await this.contract.getFullChainByBatch(batchId);
-                    document.getElementById('appLoader').classList.add('hidden');
-                    
-                    if (!chain || chain.length === 0) {
-                        traceContainer.innerHTML = `<div class="text-center p-8"><p class="text-orange-500 font-semibold">No records found for Batch ID: ${batchId}</p></div>`;
-                        return;
-                    }
-
-                    this.renderChain(chain, traceContainer);
-                } catch (e) {
-                    console.error(`Error fetching data for Batch ID ${batchId}:`, e);
-                    this.showError(`An error occurred while fetching data for Batch ID "${batchId}". It may be an invalid ID.`);
-                }
-            },
-
-            renderChain(chain, container) {
-                const html = chain.map(block => {
-                    const timestamp = new Date(Number(block.createdAt) * 1000).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
-                    return `
-                    <div class="timeline-item flex gap-4 pb-8">
-                        <div class="flex flex-col items-center">
-                            <div class="bg-indigo-500 text-white w-12 h-12 rounded-full flex items-center justify-center text-2xl shadow-md">${this.ROLE_ICONS[block.role] || '❔'}</div>
-                            <div class="timeline-line w-0.5 h-full bg-indigo-200"></div>
-                        </div>
-                        <div class="bg-gray-50 p-4 rounded-lg flex-1 border border-gray-200">
-                            <p class="font-bold text-gray-800 text-lg">${this.ROLES[block.role] || 'Unknown Action'}</p>
-                            <p class="text-sm text-gray-500">By: <strong>${block.name}</strong></p>
-                            <p class="text-xs text-gray-400 mb-2">Timestamp: ${timestamp}</p>
-                            <div class="text-sm mt-2 pt-2 border-t">
-                               <p><strong>Product/Crop:</strong> ${block.cropName}</p>
-                               <p><strong>Quantity:</strong> ${block.quantity.toString()} units</p>
-                               ${block.productId ? `<p><strong>Final Product ID:</strong> ${block.productId}</p>` : ''}
-                            </div>
-                        </div>
-                    </div>`;
-                }).join('');
-                container.innerHTML = html;
+            if (connected) {
+                this.handleURLHash();
+                window.addEventListener('hashchange', () => this.handleURLHash());
             }
-        };
+        },
 
-        // Initialize the app once the DOM is fully loaded
-        document.addEventListener('DOMContentLoaded', () => SearchApp.init());
+        handleURLHash() {
+            const serialNumber = window.location.hash.substring(1);
+            if (serialNumber) {
+                document.getElementById('searchResultId').textContent = `Serial Number: ${serialNumber}`;
+                this.search(serialNumber);
+            }
+        },
+
+        async search(serialNumber) {
+            const traceContainer = document.getElementById('searchResultTrace');
+            traceContainer.innerHTML = '<p>Searching blockchain for serial number...</p>';
+
+            try {
+                // Step 1: Get the batchId from the serialNumber (which is a productId in the contract)
+                const batchId = await Blockchain.contract.getBatchIdForProduct(serialNumber);
+
+                if (!batchId || batchId === "") {
+                    traceContainer.innerHTML = `<p class="text-red-500">No batch found for Serial Number: ${serialNumber}</p>`;
+                    return;
+                }
+                
+                traceContainer.innerHTML = `<p>Found batch ID: ${batchId}. Fetching history...</p>`;
+
+                // Step 2: Get the full chain using the retrieved batchId
+                const chain = await Blockchain.contract.getFullChainByBatch(batchId);
+
+                if (!chain || chain.length === 0) {
+                    traceContainer.innerHTML = `<p class="text-red-500">No history found for Batch ID: ${batchId}</p>`;
+                    return;
+                }
+                this.renderChain(chain, traceContainer);
+            } catch (e) {
+                console.error(e);
+                traceContainer.innerHTML = `<p class="text-red-600">Error: Could not retrieve data. Please check the Serial Number and your connection.</p><p class="text-sm text-gray-500">${e.message}</p>`;
+            }
+        },
+
+        renderChain(chain, container) {
+            let html = '';
+            chain.forEach(block => {
+                const timestamp = new Date(parseInt(block.timeStamp)).toLocaleString();
+                html += `
+                <div class="timeline-item flex gap-4 pb-8">
+                    <div class="flex flex-col items-center">
+                        <div class="bg-indigo-500 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl">${Blockchain.ROLE_ICONS[block.role]}</div>
+                        <div class="timeline-line w-0.5 h-full bg-gray-200"></div>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-lg flex-1">
+                        <p class="font-bold text-gray-800">${Blockchain.ROLES[block.role]} Action</p>
+                        <p class="text-sm text-gray-500">By <strong>${block.name}</strong> (${block.actorId})</p>
+                        <p class="text-xs text-gray-400 mb-2">Timestamp: ${timestamp}</p>
+                        <div class="text-sm">
+                           <p><strong>Product:</strong> ${block.cropName}</p>
+                           <p><strong>Quantity:</strong> ${block.quantity.toString()}</p>
+                           <p><strong>Location:</strong> ${block.location}</p>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+    };
+
+    const Blockchain = {
+        provider: null, contract: null,
+        ROLES: { 0: "Unknown", 1: "Farmer", 2: "Collector", 3: "Auditor", 4: "Manufacturer", 5: "Distributor" },
+        ROLE_ICONS: { 1: "🌾", 2: "👷", 3: "🕵️", 4: "🏭", 5: "🚚" },
+
+        async init() {
+            try {
+                this.provider = new ethers.JsonRpcProvider(AppConfig.GANACHE_URL);
+                this.contract = new ethers.Contract(AppConfig.CONTRACT_ADDRESS, AppConfig.CONTRACT_ABI, this.provider);
+                await this.provider.getBlockNumber();
+                return true;
+            } catch (e) {
+                console.error("Blockchain connection failed:", e);
+                alert("Could not connect to the blockchain. Please check the RPC URL in config.js.");
+                document.getElementById('appLoader').classList.add('hidden');
+                return false;
+            }
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => App.init());
     </script>
 </body>
 </html>
