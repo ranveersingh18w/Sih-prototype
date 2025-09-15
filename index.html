@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AyurTrace - Home</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -13,11 +14,22 @@
         .hero-bg {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
     </style>
 </head>
 <body class="bg-gray-50">
 
-    <!-- Header -->
     <header class="bg-white shadow-sm">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-3">
@@ -30,14 +42,12 @@
         </div>
     </header>
 
-    <!-- Hero Section -->
     <main>
         <section class="hero-bg text-white py-20 sm:py-32">
             <div class="container mx-auto px-6 text-center">
                 <h2 class="text-4xl sm:text-5xl font-extrabold mb-4 leading-tight">Authenticity from Farm to Consumer.</h2>
                 <p class="text-lg sm:text-xl text-indigo-100 mb-10 max-w-3xl mx-auto">Track your product's complete journey on the blockchain. Enter the Serial Number below to see its story.</p>
                 
-                <!-- Search Form -->
                 <div class="max-w-2xl mx-auto">
                     <div class="flex flex-col sm:flex-row gap-4 bg-white/20 p-4 rounded-xl backdrop-blur-sm">
                         <input id="trackIdInput" type="text" placeholder="Enter Serial Number here..." class="w-full px-5 py-3 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-white transition duration-300">
@@ -49,7 +59,6 @@
             </div>
         </section>
 
-        <!-- Features Section -->
         <section class="py-20">
             <div class="container mx-auto px-6">
                 <div class="text-center mb-12">
@@ -58,7 +67,7 @@
                 </div>
                 <div class="grid md:grid-cols-3 gap-10 text-center">
                     <div class="bg-white p-8 rounded-xl shadow-lg">
-                        <div class="text-4xl text-indigo-500 mb-4">🌾</div>
+                        <div class="text-4xl text-indigo-500 mb-4">👨‍🌾</div>
                         <h4 class="text-xl font-semibold mb-2">1. Farmer Registers</h4>
                         <p class="text-gray-600">Each harvest is registered on the blockchain, creating a unique digital identity (Batch ID).</p>
                     </div>
@@ -77,21 +86,108 @@
         </section>
     </main>
 
-    <!-- Footer -->
     <footer class="bg-gray-800 text-white py-6">
         <div class="container mx-auto px-6 text-center">
             <p>🌿 AyurTrace &copy; 2025</p>
         </div>
     </footer>
 
+    <div id="configModal" class="modal-overlay hidden">
+        <div class="bg-white rounded-lg shadow-xl p-8 max-w-md w-full">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Configuration Error</h2>
+            <p class="text-gray-600 mb-6">Could not connect to the blockchain. Please verify your configuration details and save them to generate a new `config.js` file.</p>
+            <div class="space-y-4">
+                <div>
+                    <label for="ganacheUrl" class="block text-sm font-medium text-gray-700">Ganache/NGROK URL</label>
+                    <input id="ganacheUrl" type="text" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="contractAddress" class="block text-sm font-medium text-gray-700">Contract Address</label>
+                    <input id="contractAddress" type="text" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="privateKey" class="block text-sm font-medium text-gray-700">Sender Private Key</label>
+                    <input id="privateKey" type="text" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+            </div>
+            <div class="mt-8 flex justify-end gap-4">
+                <button id="saveConfigBtn" class="bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300">
+                    Save and Download
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
     <script>
+        const checkConnection = async () => {
+            try {
+                const provider = new ethers.JsonRpcProvider(AppConfig.GANACHE_URL);
+                await provider.getBlockNumber();
+                console.log("Blockchain connection successful.");
+                return true;
+            } catch (e) {
+                console.error("Blockchain connection failed:", e);
+                return false;
+            }
+        };
+
+        const showConfigModal = () => {
+            document.getElementById('ganacheUrl').value = AppConfig.GANACHE_URL;
+            document.getElementById('contractAddress').value = AppConfig.CONTRACT_ADDRESS;
+            document.getElementById('privateKey').value = AppConfig.SENDER_PRIVATE_KEY;
+            document.getElementById('configModal').classList.remove('hidden');
+        };
+
+        const generateAndDownloadConfig = () => {
+            const newGanacheUrl = document.getElementById('ganacheUrl').value;
+            const newContractAddress = document.getElementById('contractAddress').value;
+            const newPrivateKey = document.getElementById('privateKey').value;
+
+            const newConfigContent = `
+// config.js
+const AppConfig = {
+    //  Apna NGROK URL YA GANACHE URL YAHA DAALEIN
+    GANACHE_URL: "${newGanacheUrl}", 
+
+    // DEPLOYMENT_DETAILS.JSON SE CONTRACT ADDRESS YAHA DAALEIN
+    CONTRACT_ADDRESS: "${newContractAddress}",
+
+    // GANACHE SE EK ACCOUNT KA PRIVATE KEY YAHA DAALEIN
+    SENDER_PRIVATE_KEY: "${newPrivateKey}",
+
+    // DEPLOYMENT_DETAILS.JSON SE ABI (पूरा) YAHA COPY-PASTE KAREIN
+    CONTRACT_ABI: ${JSON.stringify(AppConfig.CONTRACT_ABI, null, 4)}
+};
+`;
+            const blob = new Blob([newConfigContent], { type: 'text/javascript' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'config.js';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            alert("New 'config.js' file downloaded. Please replace the existing file in your project directory.");
+            document.getElementById('configModal').classList.add('hidden');
+        };
+
         document.getElementById('trackBtn').addEventListener('click', () => {
             const trackId = document.getElementById('trackIdInput').value.trim();
             if (trackId) {
-                // Redirect to the search page with the serial number in the hash
                 window.location.href = `search.html#${encodeURIComponent(trackId)}`;
             } else {
                 alert('Please enter a Serial Number to track.');
+            }
+        });
+
+        document.getElementById('saveConfigBtn').addEventListener('click', generateAndDownloadConfig);
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            const isConnected = await checkConnection();
+            if (!isConnected) {
+                showConfigModal();
             }
         });
     </script>
