@@ -259,12 +259,13 @@
 
         async init(userData) {
             this.currentUser = userData;
+            document.getElementById('appLoader').classList.remove('hidden');
+            document.getElementById('appContent').classList.add('hidden');
+
             const connected = await Blockchain.init();
             
-            document.getElementById('appLoader').classList.add('hidden');
-            document.getElementById('appContent').classList.remove('hidden');
-
             if (connected) {
+                await this.verifyAndRegisterCurrentUser();
                 this.setupEventListeners();
                 this.renderDashboard();
                 const hash = window.location.hash;
@@ -274,6 +275,8 @@
                     this.search();
                 }
             }
+            document.getElementById('appLoader').classList.add('hidden');
+            document.getElementById('appContent').classList.remove('hidden');
         },
         
         setupEventListeners() {
@@ -306,6 +309,32 @@
         logout() {
             sessionStorage.removeItem('ayurtrace_currentUserKey');
             window.location.href = 'login.html';
+        },
+
+        async verifyAndRegisterCurrentUser() {
+            const loaderText = document.querySelector('#appLoader p');
+            loaderText.textContent = 'Verifying your blockchain identity...';
+            try {
+                const actorOnChain = await Blockchain.contract.actors(this.currentUser.actorId);
+                if (actorOnChain.isRegistered) {
+                    console.log("User already registered on blockchain.");
+                    return;
+                }
+
+                console.log("User not found on blockchain. Attempting to register now.");
+                loaderText.textContent = 'Registering your identity on the blockchain...';
+                
+                const { actorId, role, fullName, address, phone } = this.currentUser;
+                const txPromise = Blockchain.contract.registerActor(actorId, role, fullName, address, phone);
+                const receipt = await Blockchain.handleTransaction(txPromise, null);
+
+                if (!receipt) {
+                    alert("CRITICAL: We could not register your ID on the blockchain. Your actions on this page may fail. Please try re-logging.");
+                }
+            } catch (e) {
+                console.error("Error during blockchain registration check:", e);
+                alert("CRITICAL: An error occurred while checking your blockchain registration. Your actions on this page may fail.");
+            }
         },
 
         renderDashboard() {
