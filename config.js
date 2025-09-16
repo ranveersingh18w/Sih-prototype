@@ -1,7 +1,7 @@
 // config.js
 const AppConfig = {
     //  Apna NGROK URL YA GANACHE URL YAHA DAALEIN
-    GANACHE_URL: "https://16c742a87dc1.ngrok-free.app ", 
+    GANACHE_URL: "https://863da18e934d.ngrok-free.app", 
 
     // DEPLOYMENT_DETAILS.JSON SE CONTRACT ADDRESS YAHA DAALEIN
     CONTRACT_ADDRESS: "0x5D08727B01321dF75196AbcC76FE7279E2a188bf",
