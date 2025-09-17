@@ -7,12 +7,10 @@ from solcx.exceptions import SolcInstallationError
 
 
 # ---------- USER CONFIG ----------
-# MODIFIED: Changed this URL to point to a standard local Ganache server
-GANACHE_URL = "https://34346db74976.ngrok-free.app" 
-# Your Ganache account address and private key are now set directly here
-ACCOUNT_ADDRESS = "0xcB527F104E2Fd0080d278c62d0e3D19874faA57b"
-PRIVATE_KEY = "0xc65d0a8ac3022fec208475b2d6a3cae7fe41f8b52a10a2b3e046f9fa99e54918"
-# Path to your solidity file
+GANACHE_URL = "http://127.0.0.1:7545" 
+ACCOUNT_ADDRESS = "0xD59a10206e04B862395649769Ca1B15b08E66B86"
+PRIVATE_KEY = "0x4df33878727c1de22648b60883cf9bb506a85356eb4e453393a434e00ae8410d"
+# Path to your new solidity file
 SOLIDITY_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "new.sol")
 # Solidity compiler version
 SOLC_VERSION = "0.8.20"
@@ -60,7 +58,7 @@ def compile_contract(source_path: str):
             "language": "Solidity",
             "sources": {os.path.basename(source_path): {"content": source}},
             "settings": {
-                "optimizer": {"enabled": True, "runs": 200},
+                "optimizer": {"enabled": True, "runs": 200000}, # <-- Increased to a very high value for max optimization
                 "evmVersion": "london",
                 "viaIR": True,
                 "outputSelection": {"*": {"*": ["abi", "evm.bytecode"]}},
