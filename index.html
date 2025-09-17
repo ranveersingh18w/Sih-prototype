@@ -3,84 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AyurTrace - Home</title>
+    <title>AyurTrace - Authentic Ayurvedic Transparency</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-        }
-        .hero-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-gray-50">
+<body class="bg-white">
 
     <!-- Header -->
-    <header class="bg-white shadow-sm">
+    <header class="bg-white shadow-sm sticky top-0 z-50">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-3">
-                <span class="text-2xl">🌿</span>
+                <img src="https://placehold.co/40x40/006A4E/FFFFFF?text=A" alt="AyurTrace Logo" class="rounded-full">
                 <h1 class="text-2xl font-bold text-gray-800">AyurTrace</h1>
             </div>
-            <a href="login.html" class="bg-indigo-600 text-white font-semibold px-5 py-2 rounded-lg hover:bg-indigo-700 transition duration-300">
-                Login / Signup
-            </a>
+            <nav class="hidden md:flex items-center space-x-8">
+                <a href="#" class="text-gray-600 hover:text-primary-green font-medium">Home</a>
+                <a href="#how-it-works" class="text-gray-600 hover:text-primary-green font-medium">How It Works</a>
+                <a href="#why-choose-us" class="text-gray-600 hover:text-primary-green font-medium">Why Choose Us</a>
+            </nav>
+            <div>
+                <a href="login.html" class="btn btn-primary">Login / Signup</a>
+            </div>
         </div>
     </header>
 
     <!-- Hero Section -->
     <main>
-        <section class="hero-bg text-white py-20 sm:py-32">
-            <div class="container mx-auto px-6 text-center">
-                <h2 class="text-4xl sm:text-5xl font-extrabold mb-4 leading-tight">Authenticity from Farm to Consumer.</h2>
-                <p class="text-lg sm:text-xl text-indigo-100 mb-10 max-w-3xl mx-auto">Track your product's complete journey on the blockchain. Enter the Serial Number below to see its story.</p>
-                
-                <!-- Search Form -->
-                <div class="max-w-2xl mx-auto">
-                    <div class="flex flex-col sm:flex-row gap-4 bg-white/20 p-4 rounded-xl backdrop-blur-sm">
-                        <input id="trackIdInput" type="text" placeholder="Enter Serial Number here..." class="w-full px-5 py-3 text-gray-800 rounded-lg focus:outline-none focus:ring-2 focus:ring-white transition duration-300">
-                        <button id="trackBtn" class="bg-white text-indigo-600 font-bold px-8 py-3 rounded-lg hover:bg-gray-100 transition duration-300 w-full sm:w-auto flex-shrink-0">
-                            Track Product
-                        </button>
+        <section class="bg-light-green py-20">
+            <div class="container mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+                <div class="text-left">
+                    <h2 class="text-4xl md:text-5xl font-extrabold text-dark-gray mb-4 leading-tight">Authentic Ayurvedic Transparency</h2>
+                    <p class="text-lg text-medium-gray mb-8">Trace your Ayurvedic products from farm to shelf with blockchain-powered transparency. Verify authenticity, quality, and sustainability with a simple scan.</p>
+                    
+                    <div class="max-w-lg bg-white p-4 rounded-lg shadow-md flex gap-2">
+                        <input id="trackIdInput" type="text" placeholder="Enter Batch ID or scan QR code..." class="w-full px-4 py-2 text-gray-800 rounded-lg border focus:outline-none focus:ring-2 focus:ring-primary-green">
+                        <button id="trackBtn" class="btn btn-primary flex-shrink-0">Trace</button>
+                    </div>
+                    <p class="text-sm text-medium-gray mt-4">🌿 Instantly verify product authenticity</p>
+                </div>
+                <div>
+                    <img src="https://placehold.co/600x450/2E8B57/FFFFFF?text=Lush+Ayurvedic+Farm" alt="Lush green field of ayurvedic herbs" class="rounded-xl shadow-2xl">
+                </div>
+            </div>
+        </section>
+
+        <!-- How It Works Section -->
+        <section id="how-it-works" class="py-20">
+            <div class="container mx-auto px-6">
+                <h3 class="section-title">How AyurTrace Works</h3>
+                <p class="section-subtitle">Our blockchain-powered platform ensures complete transparency in the Ayurvedic supply chain, from cultivation to consumer.</p>
+                <div class="grid md:grid-cols-3 gap-10 text-center">
+                    <div class="card">
+                        <div class="flex justify-center mb-4">
+                            <img src="https://placehold.co/80x80/006A4E/FFFFFF?text=1" alt="Scan QR Code Icon" class="rounded-full">
+                        </div>
+                        <h4 class="text-xl font-semibold mb-2">1. Scan QR Code</h4>
+                        <p class="text-gray-600">Simply scan the QR code on your Ayurvedic product packaging to begin the traceability journey.</p>
+                    </div>
+                    <div class="card">
+                        <div class="flex justify-center mb-4">
+                            <img src="https://placehold.co/80x80/006A4E/FFFFFF?text=2" alt="View Journey Icon" class="rounded-full">
+                        </div>
+                        <h4 class="text-xl font-semibold mb-2">2. View Journey</h4>
+                        <p class="text-gray-600">Explore the complete supply chain journey with detailed information about each step and stakeholder.</p>
+                    </div>
+                    <div class="card">
+                        <div class="flex justify-center mb-4">
+                            <img src="https://placehold.co/80x80/006A4E/FFFFFF?text=3" alt="Verify Authenticity Icon" class="rounded-full">
+                        </div>
+                        <h4 class="text-xl font-semibold mb-2">3. Verify Authenticity</h4>
+                        <p class="text-gray-600">Confirm product authenticity and quality with blockchain-verified information from trusted sources.</p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Features Section -->
-        <section class="py-20">
-            <div class="container mx-auto px-6">
-                <div class="text-center mb-12">
-                     <h3 class="text-3xl font-bold text-gray-800">How It Works</h3>
-                     <p class="text-gray-500 mt-2">A simple, transparent, and secure process for everyone.</p>
+        <!-- Why Choose Us Section -->
+        <section id="why-choose-us" class="py-20 bg-light-gray">
+            <div class="container mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h3 class="text-3xl font-bold mb-6">Why Choose AyurTrace?</h3>
+                    <div class="space-y-6">
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0"><img src="https://placehold.co/40x40/006A4E/FFFFFF?text=T" alt="Icon" class="rounded-full"></div>
+                            <div>
+                                <h4 class="font-semibold text-lg">Traditional Wisdom</h4>
+                                <p class="text-medium-gray">Preserving the integrity of ancient Ayurvedic practices with modern transparency.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0"><img src="https://placehold.co/40x40/006A4E/FFFFFF?text=B" alt="Icon" class="rounded-full"></div>
+                            <div>
+                                <h4 class="font-semibold text-lg">Blockchain Security</h4>
+                                <p class="text-medium-gray">Immutable records ensure data integrity and prevent counterfeiting.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div class="flex-shrink-0"><img src="https://placehold.co/40x40/006A4E/FFFFFF?text=I" alt="Icon" class="rounded-full"></div>
+                            <div>
+                                <h4 class="font-semibold text-lg">Instant Verification</h4>
+                                <p class="text-medium-gray">Real-time access to complete product history with a simple scan.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="grid md:grid-cols-3 gap-10 text-center">
-                    <div class="bg-white p-8 rounded-xl shadow-lg">
-                        <div class="text-4xl text-indigo-500 mb-4">🌾</div>
-                        <h4 class="text-xl font-semibold mb-2">1. Farmer Registers</h4>
-                        <p class="text-gray-600">Each harvest is registered on the blockchain, creating a unique digital identity (Batch ID).</p>
-                    </div>
-                    <div class="bg-white p-8 rounded-xl shadow-lg">
-                        <div class="text-4xl text-indigo-500 mb-4">🔗</div>
-                        <h4 class="text-xl font-semibold mb-2">2. Chain of Custody</h4>
-                        <p class="text-gray-600">Every stakeholder—from collector to distributor—updates the batch's status on the chain.</p>
-                    </div>
-                    <div class="bg-white p-8 rounded-xl shadow-lg">
-                        <div class="text-4xl text-indigo-500 mb-4">📱</div>
-                        <h4 class="text-xl font-semibold mb-2">3. Consumer Verifies</h4>
-                        <p class="text-gray-600">You can scan the QR code or enter the ID to view the product's entire journey.</p>
-                    </div>
+                <div>
+                    <img src="https://placehold.co/600x450/333333/FFFFFF?text=Blockchain+Visualization" alt="Abstract blockchain visualization" class="rounded-xl shadow-2xl">
                 </div>
             </div>
         </section>
+
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-6">
+    <footer class="bg-dark-gray text-white py-10">
         <div class="container mx-auto px-6 text-center">
-            <p>🌿 AyurTrace &copy; 2025</p>
+            <p>&copy; 2025 AyurTrace. Bridging tradition with transparency.</p>
         </div>
     </footer>
 
@@ -88,10 +127,9 @@
         document.getElementById('trackBtn').addEventListener('click', () => {
             const trackId = document.getElementById('trackIdInput').value.trim();
             if (trackId) {
-                // Redirect to the search page with the serial number in the hash
                 window.location.href = `search.html#${encodeURIComponent(trackId)}`;
             } else {
-                alert('Please enter a Serial Number to track.');
+                alert('Please enter a Batch ID to track.');
             }
         });
     </script>

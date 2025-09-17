@@ -3,45 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Trace - AyurTrace</title>
+    <title>Product Journey - AyurTrace</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.umd.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
     <style>
-        body { font-family: 'Poppins', sans-serif; }
-        .timeline-item:last-child .timeline-line { display: none; }
+        .timeline-item {
+            @apply relative pl-12 pb-8;
+        }
+        .timeline-icon {
+            @apply absolute left-0 top-0 w-12 h-12 bg-primary-green text-white rounded-full flex items-center justify-center font-bold text-xl;
+        }
+        .timeline-line {
+            @apply absolute left-6 top-12 w-0.5 h-full bg-gray-200;
+        }
+        .timeline-item:last-child .timeline-line {
+            display: none;
+        }
     </style>
 </head>
-<body class="bg-gray-100">
+<body class="bg-light-gray">
 
     <div id="appLoader" class="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
         <div class="text-center">
-            <div class="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-indigo-600 mx-auto"></div>
+            <div class="w-16 h-16 border-4 border-dashed rounded-full animate-spin border-primary-green mx-auto"></div>
             <h2 class="text-2xl font-semibold text-gray-700 mt-4">Loading Product History...</h2>
             <p class="text-gray-500">Connecting to the blockchain.</p>
         </div>
     </div>
     
     <div id="appContent" class="hidden">
-        <header class="bg-white shadow-md sticky top-0 z-40">
-            <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-                <a href="index.html" class="text-xl font-bold text-gray-800">AyurTrace</a>
-                <a href="login.html" class="bg-indigo-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-indigo-700 text-sm">Stakeholder Login</a>
+        <header class="bg-white shadow-sm sticky top-0 z-40">
+            <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+                <a href="index.html" class="flex items-center space-x-3">
+                    <img src="https://placehold.co/40x40/006A4E/FFFFFF?text=A" alt="AyurTrace Logo" class="rounded-full">
+                    <h1 class="text-2xl font-bold text-gray-800">AyurTrace</h1>
+                </a>
+                <a href="login.html" class="btn btn-primary">Stakeholder Login</a>
             </div>
         </header>
 
-        <main class="container mx-auto p-4 md:p-6">
-            <section id="searchResults" class="bg-white p-6 rounded-2xl shadow-lg">
-                <h2 class="text-2xl font-bold text-gray-800">Supply Chain History</h2>
-                <p id="searchResultId" class="text-gray-500 mb-4">Serial Number: -</p>
-                <div id="searchResultTrace" class="relative pl-6 border-l-2 border-gray-200">
-                    <p>Enter a Serial Number in the URL (e.g., search.html#00125) to see the history.</p>
+        <main class="container mx-auto p-6">
+            <h2 class="text-3xl font-bold mb-2">Product Journey</h2>
+            <p id="searchResultId" class="text-gray-500 mb-8">Complete transparency from farm to consumer for batch: -</p>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Left Column: Timeline -->
+                <div id="searchResultTrace" class="lg:col-span-2">
+                    <p>Enter a Batch or Serial Number in the URL (e.g., search.html#YOUR_ID) to see the history.</p>
                 </div>
-            </section>
+
+                <!-- Right Column: Product Info -->
+                <div id="productInfoCard" class="hidden">
+                    <div class="bg-white p-6 rounded-xl shadow-lg sticky top-24">
+                        <h3 class="font-bold text-xl mb-4">Product Information</h3>
+                        <div id="product-info-content" class="space-y-3 text-sm">
+                            <!-- Product info will be injected here -->
+                        </div>
+                        <div class="mt-6">
+                            <h4 class="font-semibold mb-2">Authenticity Verified</h4>
+                            <p class="flex items-center gap-2 text-green-600 font-semibold">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+                                Blockchain Verified
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
     <script src="config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.umd.min.js"></script>
     <script>
     const App = {
         async init() {
@@ -56,60 +90,86 @@
         },
 
         handleURLHash() {
-            const serialNumber = window.location.hash.substring(1);
-            if (serialNumber) {
-                document.getElementById('searchResultId').textContent = `Serial Number: ${serialNumber}`;
-                this.search(serialNumber);
+            const searchId = decodeURIComponent(window.location.hash.substring(1));
+            if (searchId) {
+                document.getElementById('searchResultId').textContent = `Complete transparency from farm to consumer for batch: ${searchId}`;
+                this.search(searchId);
             }
         },
 
-        async search(serialNumber) {
+        async search(searchId) {
             const traceContainer = document.getElementById('searchResultTrace');
-            traceContainer.innerHTML = '<p>Searching blockchain for serial number...</p>';
+            traceContainer.innerHTML = '<p>Searching blockchain...</p>';
 
             try {
-                // Step 1: Get the batchId from the serialNumber (which is a productId in the contract)
-                const batchId = await Blockchain.contract.getBatchIdForProduct(serialNumber);
+                const searchIdBytes = ethers.encodeBytes32String(searchId);
+                let batchIdBytes = searchIdBytes;
 
-                if (!batchId || batchId === "") {
-                    traceContainer.innerHTML = `<p class="text-red-500">No batch found for Serial Number: ${serialNumber}</p>`;
-                    return;
+                // Check if it's a product ID to find its batch ID
+                const potentialBatchId = await Blockchain.contract.getBatchIdForProduct(searchIdBytes);
+                if (potentialBatchId && potentialBatchId !== "0x0000000000000000000000000000000000000000000000000000000000000000") {
+                    batchIdBytes = potentialBatchId;
                 }
-                
-                traceContainer.innerHTML = `<p>Found batch ID: ${batchId}. Fetching history...</p>`;
 
-                // Step 2: Get the full chain using the retrieved batchId
-                const chain = await Blockchain.contract.getFullChainByBatch(batchId);
+                const chain = await Blockchain.contract.getFullChainByBatch(batchIdBytes);
 
                 if (!chain || chain.length === 0) {
-                    traceContainer.innerHTML = `<p class="text-red-500">No history found for Batch ID: ${batchId}</p>`;
+                    traceContainer.innerHTML = `<p class="text-red-500">No history found for ID: ${searchId}</p>`;
                     return;
                 }
+                this.renderProductInfo(chain);
                 this.renderChain(chain, traceContainer);
             } catch (e) {
                 console.error(e);
-                traceContainer.innerHTML = `<p class="text-red-600">Error: Could not retrieve data. Please check the Serial Number and your connection.</p><p class="text-sm text-gray-500">${e.message}</p>`;
+                traceContainer.innerHTML = `<p class="text-red-600">Error: Could not retrieve data.</p>`;
             }
+        },
+
+        renderProductInfo(chain) {
+            const container = document.getElementById('product-info-content');
+            const card = document.getElementById('productInfoCard');
+            const firstBlock = chain[0];
+            const lastBlock = chain[chain.length - 1];
+
+            const cropName = ethers.decodeBytes32String(firstBlock.cropName).trim();
+            const totalQuantity = firstBlock.quantity.toString();
+            const currentLocation = ethers.decodeBytes32String(lastBlock.location).trim();
+            
+            const startDate = new Date(Number(firstBlock.createdAt) * 1000);
+            const endDate = new Date(Number(lastBlock.createdAt) * 1000);
+            const duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+
+            container.innerHTML = `
+                <h4 class="font-bold text-lg">${cropName}</h4>
+                <p><strong>Batch ID:</strong> ${ethers.decodeBytes32String(firstBlock.batchId).trim()}</p>
+                <p><strong>Total Quantity:</strong> ${totalQuantity} kg</p>
+                <p><strong>Current Location:</strong> ${currentLocation}</p>
+                <p><strong>Journey Duration:</strong> ${duration} days</p>
+            `;
+            card.classList.remove('hidden');
         },
 
         renderChain(chain, container) {
             let html = '';
             chain.forEach(block => {
-                const timestamp = new Date(parseInt(block.timeStamp)).toLocaleString();
+                const roleName = Blockchain.ROLES[block.role] || 'Unknown';
+                const actorName = ethers.decodeBytes32String(block.name).trim();
+                const location = ethers.decodeBytes32String(block.location).trim();
+                const timestamp = new Date(Number(block.createdAt) * 1000).toLocaleString();
+                const ipfsHash = block.ipfsHash;
+
                 html += `
-                <div class="timeline-item flex gap-4 pb-8">
-                    <div class="flex flex-col items-center">
-                        <div class="bg-indigo-500 text-white w-12 h-12 rounded-full flex items-center justify-center text-xl">${Blockchain.ROLE_ICONS[block.role]}</div>
-                        <div class="timeline-line w-0.5 h-full bg-gray-200"></div>
-                    </div>
-                    <div class="bg-gray-50 p-4 rounded-lg flex-1">
-                        <p class="font-bold text-gray-800">${Blockchain.ROLES[block.role]} Action</p>
-                        <p class="text-sm text-gray-500">By <strong>${block.name}</strong> (${block.actorId})</p>
-                        <p class="text-xs text-gray-400 mb-2">Timestamp: ${timestamp}</p>
-                        <div class="text-sm">
-                           <p><strong>Product:</strong> ${block.cropName}</p>
-                           <p><strong>Quantity:</strong> ${block.quantity.toString()}</p>
-                           <p><strong>Location:</strong> ${block.location}</p>
+                <div class="timeline-item">
+                    <div class="timeline-icon">${Blockchain.ROLE_ICONS[block.role] || '📦'}</div>
+                    <div class="timeline-line"></div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <p class="font-bold text-lg">${roleName}</p>
+                        <p class="text-sm text-gray-500 mb-2">By <strong>${actorName}</strong></p>
+                        <div class="text-sm space-y-1 text-gray-600">
+                            <p><strong>Timestamp:</strong> ${timestamp}</p>
+                            <p><strong>Location:</strong> ${location}</p>
+                            ${block.quantity > 0 ? `<p><strong>Quantity:</strong> ${block.quantity.toString()}</p>` : ''}
+                            ${ipfsHash ? `<p><strong>Documents:</strong> <a href="${AppConfig.PINATA_GATEWAY}${ipfsHash}" target="_blank" class="text-primary-green hover:underline">View Document</a></p>` : ''}
                         </div>
                     </div>
                 </div>`;
@@ -120,8 +180,8 @@
 
     const Blockchain = {
         provider: null, contract: null,
-        ROLES: { 0: "Unknown", 1: "Farmer", 2: "Collector", 3: "Auditor", 4: "Manufacturer", 5: "Distributor" },
-        ROLE_ICONS: { 1: "🌾", 2: "👷", 3: "🕵️", 4: "🏭", 5: "🚚" },
+        ROLES: { 0: "Unknown", 1: "Farmer", 2: "Collector", 3: "Auditor", 4: "Manufacturer", 5: "Distributor", 6: "LabReport" },
+        ROLE_ICONS: { 1: "🌾", 2: "👷", 3: "🕵️", 4: "🏭", 5: "🚚", 6: "🔬" },
 
         async init() {
             try {
@@ -131,7 +191,7 @@
                 return true;
             } catch (e) {
                 console.error("Blockchain connection failed:", e);
-                alert("Could not connect to the blockchain. Please check the RPC URL in config.js.");
+                alert("Could not connect to the blockchain.");
                 document.getElementById('appLoader').classList.add('hidden');
                 return false;
             }

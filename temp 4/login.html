@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login / Signup - AyurTrace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .tab-btn.active {
+            border-color: #4f46e5;
+            background-color: #4f46e5;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-xl bg-white rounded-2xl shadow-xl p-8 space-y-6">
+        <div class="text-center">
+            <h1 class="text-3xl font-bold text-gray-800">Welcome to AyurTrace</h1>
+            <p class="text-gray-500 mt-2">Login with your existing ID or create a new one.</p>
+        </div>
+
+        <div class="flex border-b border-gray-200">
+            <button id="loginTabBtn" class="tab-btn flex-1 py-2 font-semibold text-gray-600 border-b-2 border-transparent hover:border-gray-300 focus:outline-none active">Login</button>
+            <button id="registerTabBtn" class="tab-btn flex-1 py-2 font-semibold text-gray-600 border-b-2 border-transparent hover:border-gray-300 focus:outline-none">Register New ID</button>
+        </div>
+
+        <div id="loginForm">
+            <div class="space-y-4">
+                <div>
+                    <label for="loginActorId" class="block text-sm font-medium text-gray-700">Actor ID</label>
+                    <input id="loginActorId" type="text" placeholder="e.g., FARM001" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="loginPassword" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input id="loginPassword" type="password" placeholder="********" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="loginActorRole" class="block text-sm font-medium text-gray-700">Select Your Role</label>
+                    <select id="loginActorRole" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="1">🌾 Farmer (Kisaan)</option>
+                        <option value="2">👷 Collector (Sangrahak)</option>
+                        <option value="3">🕵️ Auditor</option>
+                        <option value="4">🏭 Manufacturer (Nirmata)</option>
+                        <option value="5">🚚 Distributor (Vitarak)</option>
+                    </select>
+                </div>
+            </div>
+            <button id="btnLogin" class="mt-6 w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-indigo-700 transition duration-300">
+                Login with Existing ID
+            </button>
+        </div>
+        
+        <div id="registerForm" class="hidden">
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="regActorId" class="block text-sm font-medium text-gray-700">Actor ID</label>
+                    <input id="regActorId" type="text" placeholder="e.g., FARM001" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                </div>
+                <div>
+                    <label for="regPassword" class="block text-sm font-medium text-gray-700">Password</label>
+                    <input id="regPassword" type="password" placeholder="********" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                </div>
+                <div>
+                    <label for="regFullName" class="block text-sm font-medium text-gray-700">Full Name</label>
+                    <input id="regFullName" type="text" placeholder="Aapka poora naam" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                </div>
+                <div>
+                    <label for="regPhone" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                    <input id="regPhone" type="tel" placeholder="Phone number" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                </div>
+                <div class="md:col-span-2">
+                    <label for="regAddress" class="block text-sm font-medium text-gray-700">Physical Address</label>
+                    <input id="regAddress" type="text" placeholder="Company/Farm ka pata" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                </div>
+                <div class="md:col-span-2">
+                    <label for="regActorRole" class="block text-sm font-medium text-gray-700">Select Your Role</label>
+                    <select id="regActorRole" class="mt-1 block w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm">
+                        <option value="1">🌾 Farmer (Kisaan)</option>
+                        <option value="2">👷 Collector (Sangrahak)</option>
+                        <option value="3">🕵️ Auditor</option>
+                        <option value="4">🏭 Manufacturer (Nirmata)</option>
+                        <option value="5">🚚 Distributor (Vitarak)</option>
+                    </select>
+                </div>
+            </div>
+             <button id="btnRegisterAndLogin" class="mt-6 w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-indigo-700 transition duration-300">
+                Create New ID
+            </button>
+        </div>
+
+        <div id="authFeedback" class="hidden p-4 rounded-md text-sm mt-4"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.umd.min.js"></script>
+    <script src="config.js"></script>
+    <script src="supabase-auth.js"></script>
+    <script>
+        const Blockchain = {
+            provider: null, wallet: null, contract: null,
+
+            async init() {
+                try {
+                    this.provider = new ethers.JsonRpcProvider(AppConfig.GANACHE_URL);
+                    this.wallet = new ethers.Wallet(AppConfig.SENDER_PRIVATE_KEY, this.provider);
+                    this.contract = new ethers.Contract(AppConfig.CONTRACT_ADDRESS, AppConfig.CONTRACT_ABI, this.wallet);
+                    await this.provider.getBlockNumber();
+                    return true;
+                } catch (e) {
+                    console.error("Blockchain connection failed:", e);
+                    UI.showFeedback('authFeedback', "Blockchain connection failed. Please check config.js.", 'error');
+                    return false;
+                }
+            },
+
+            async handleTransaction(txPromise, feedbackElId) {
+                UI.showFeedback(feedbackElId, 'Sending transaction to blockchain...', 'info');
+                try {
+                    const tx = await txPromise;
+                    UI.showFeedback(feedbackElId, `Transaction sent! Waiting for confirmation...`, 'info');
+                    const receipt = await tx.wait();
+                    UI.showFeedback(feedbackElId, `Transaction successful!`, 'success');
+                    return receipt;
+                } catch (e) {
+                    const reason = e.reason || e.message || "Transaction failed.";
+                    UI.showFeedback(feedbackElId, `Error: ${reason}`, 'error');
+                    console.error(e);
+                    return null;
+                }
+            }
+        };
+
+        const UI = {
+            init() {
+                document.getElementById('btnRegisterAndLogin').addEventListener('click', () => this.registerAndLogin());
+                document.getElementById('btnLogin').addEventListener('click', () => this.login());
+
+                const loginTab = document.getElementById('loginTabBtn');
+                const registerTab = document.getElementById('registerTabBtn');
+                const loginForm = document.getElementById('loginForm');
+                const registerForm = document.getElementById('registerForm');
+
+                loginTab.addEventListener('click', () => {
+                    loginTab.classList.add('active');
+                    registerTab.classList.remove('active');
+                    loginForm.classList.remove('hidden');
+                    registerForm.classList.add('hidden');
+                });
+
+                registerTab.addEventListener('click', () => {
+                    registerTab.classList.add('active');
+                    loginTab.classList.remove('active');
+                    registerForm.classList.remove('hidden');
+                    loginForm.classList.add('hidden');
+                });
+            },
+
+            showFeedback(elId, message, type) {
+                const el = document.getElementById(elId);
+                el.className = 'p-4 rounded-md text-sm mt-4';
+                if (type === 'success') el.classList.add('bg-green-100', 'text-green-800');
+                else if (type === 'error') el.classList.add('bg-red-100', 'text-red-800');
+                else el.classList.add('bg-blue-100', 'text-blue-800');
+                el.innerHTML = message;
+                el.style.display = 'block';
+            },
+            
+            handleSuccessfulAuth(userData) {
+                const userKey = `ayurtrace_user_${userData.actorId}_${userData.role}`;
+                localStorage.setItem(userKey, JSON.stringify(userData));
+                sessionStorage.setItem('ayurtrace_currentUserKey', userKey);
+                window.location.href = 'dashboard.html';
+            },
+
+            async registerAndLogin() {
+                const actorId = document.getElementById('regActorId').value.trim();
+                const password = document.getElementById('regPassword').value;
+                const fullName = document.getElementById('regFullName').value.trim();
+                const phone = document.getElementById('regPhone').value.trim();
+                const address = document.getElementById('regAddress').value.trim();
+                const role = parseInt(document.getElementById('regActorRole').value);
+
+                if (!actorId || !password || !fullName || !address || !phone) {
+                    return this.showFeedback('authFeedback', "Please fill in all details.", 'error');
+                }
+
+                this.showFeedback('authFeedback', 'Creating account in database...', 'info');
+                const newUserInDb = await signUp(actorId, password, fullName, phone, address, role);
+
+                if (!newUserInDb) {
+                    return this.showFeedback('authFeedback', 'This Actor ID may already be registered for the selected role.', 'error');
+                }
+
+                this.showFeedback('authFeedback', `Account for ${actorId} created! Logging in...`, 'success');
+                this.handleSuccessfulAuth(newUserInDb);
+            },
+
+            async login() {
+                const actorId = document.getElementById('loginActorId').value.trim();
+                const password = document.getElementById('loginPassword').value;
+                const role = parseInt(document.getElementById('loginActorRole').value);
+
+                if (!actorId || !password) {
+                    return this.showFeedback('authFeedback', "Please enter Actor ID and Password.", 'error');
+                }
+
+                this.showFeedback('authFeedback', 'Logging in with Supabase...', 'info');
+                const storedUser = await signIn(actorId, password, role);
+
+                if (!storedUser) {
+                    return this.showFeedback('authFeedback', 'Incorrect Actor ID, Password, or Role.', 'error');
+                }
+
+                this.showFeedback('authFeedback', 'Login successful! Redirecting...', 'success');
+                setTimeout(() => this.handleSuccessfulAuth(storedUser), 1000);
+            },
+        };
+
+        window.addEventListener('DOMContentLoaded', () => UI.init());
+    </script>
+</body>
+</html>

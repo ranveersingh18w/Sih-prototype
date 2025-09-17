@@ -1,45 +1,79 @@
-const SUPABASE_URL = 'https://uktkljrgbkenbvvpqcbe.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVrdGtsanJnYmtlbmJ2dnBxY2JlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc5OTkwMjMsImV4cCI6MjA3MzU3NTAyM30.2KHill336u0RcXSKjEfhqWCTofAs8B0eCZ7JXsHcyrQ';
-
 const { createClient } = supabase;
-const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Initialize Supabase client using credentials from config.js
+const supabaseClient = createClient(AppConfig.SUPABASE_URL, AppConfig.SUPABASE_ANON_KEY);
 
 async function signUp(actorId, password, fullName, phone, address, role) {
-    const { data, error } = await _supabase
-        .from('users_plain')
-        .insert([
-            { 
-                actorId: actorId, 
-                password: password, 
-                fullName: fullName,
-                phone: phone,
-                address: address,
-                role: role 
-            }
-        ])
-        .select();
+    try {
+        // Directly insert user data into the users_plain table.
+        // WARNING: This is highly insecure as it stores passwords in plaintext.
+        const { data, error } = await supabaseClient
+            .from('users_plain')
+            .insert([
+                {
+                    'actorId': actorId,
+                    'password': password,
+                    'fullName': fullName,
+                    'phone': phone,
+                    'address': address,
+                    'role': role,
+                },
+            ])
+            .select()
+            .single();
 
-    if (error) {
-        console.error('Error signing up:', error.message);
+        if (error) {
+            console.error('Supabase insert error:', error);
+            alert(`Error creating user: ${error.message}`);
+            return null;
+        }
+
+        // Return the inserted data on success
+        return {
+            actorId: data.actorId,
+            role: data.role,
+            fullName: data.fullName,
+            phone: data.phone,
+            address: data.address,
+            password: data.password // Passing password back
+        };
+
+    } catch (e) {
+        console.error('An unexpected error occurred during sign-up:', e);
+        alert('An unexpected error occurred. Please try again.');
         return null;
     }
-
-    return data ? data[0] : null;
 }
 
 async function signIn(actorId, password, role) {
-    const { data, error } = await _supabase
-        .from('users_plain')
-        .select('*')
-        .eq('actorId', actorId)
-        .eq('password', password)
-        .eq('role', role)
-        .single();
+    try {
+        // Directly check for a user with matching credentials.
+        // WARNING: This is highly insecure as it compares plaintext passwords.
+        const { data, error } = await supabaseClient
+            .from('users_plain')
+            .select('*')
+            .eq('actorId', actorId)
+            .eq('password', password)
+            .eq('role', role)
+            .single();
 
-    if (error || !data) {
-        console.error('Error signing in:', error ? error.message : 'No user found');
+        if (error || !data) {
+            console.error('Supabase select error:', error);
+            return null; // Return null if user not found or error occurs
+        }
+
+        // Return the user data if a match is found
+        return {
+            actorId: data.actorId,
+            role: data.role,
+            fullName: data.fullName,
+            phone: data.phone,
+            address: data.address,
+            password: data.password
+        };
+
+    } catch (e) {
+        console.error('An unexpected error occurred during sign-in:', e);
         return null;
     }
-
-    return data;
 }
