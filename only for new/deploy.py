@@ -7,11 +7,11 @@ from solcx.exceptions import SolcInstallationError
 
 
 # ---------- USER CONFIG ----------
-# Ensure this matches your Ganache or other RPC endpoint
-GANACHE_URL = "https://fd65747563a9.ngrok-free.app"
+# MODIFIED: Changed this URL to point to a standard local Ganache server
+GANACHE_URL = "https://34346db74976.ngrok-free.app" 
 # Your Ganache account address and private key are now set directly here
-ACCOUNT_ADDRESS = "0x36c70335a07De09E505A203F078Ce4179e790C7b"
-PRIVATE_KEY = "0x8a8947111e5edaad6e0e47351f8eb62a68448d211a5e1bf2463de08e344d8b8a"
+ACCOUNT_ADDRESS = "0xcB527F104E2Fd0080d278c62d0e3D19874faA57b"
+PRIVATE_KEY = "0xc65d0a8ac3022fec208475b2d6a3cae7fe41f8b52a10a2b3e046f9fa99e54918"
 # Path to your solidity file
 SOLIDITY_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "new.sol")
 # Solidity compiler version
