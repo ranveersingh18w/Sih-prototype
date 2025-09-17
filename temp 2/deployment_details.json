@@ -1,6 +1,6 @@
 {
   "contractName": "SupplyChainTrace",
-  "contractAddress": "0x5D08727B01321dF75196AbcC76FE7279E2a188bf",
+  "contractAddress": "0x7D35B9B7D269671Cd46929D65e758Ba0CAD13244",
   "abi": [
     {
       "inputs": [],
@@ -356,16 +356,16 @@
       "inputs": [
         {
           "internalType": "string",
-          "name": "actorId",
+          "name": "productId",
           "type": "string"
         }
       ],
-      "name": "getBatchesByActor",
+      "name": "getBatchIdForProduct",
       "outputs": [
         {
-          "internalType": "string[]",
+          "internalType": "string",
           "name": "",
-          "type": "string[]"
+          "type": "string"
         }
       ],
       "stateMutability": "view",

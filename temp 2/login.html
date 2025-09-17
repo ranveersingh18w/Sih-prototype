@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login / Signup - AyurTrace</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -53,7 +53,7 @@
                     </select>
                 </div>
             </div>
-            <button id="btnLogin" class="mt-6 w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-indigo-700 transition duration-300 disabled:opacity-50" disabled>
+            <button id="btnLogin" class="mt-6 w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-indigo-700 transition duration-300">
                 Login with Existing ID
             </button>
         </div>
@@ -91,15 +91,17 @@
                     </select>
                 </div>
             </div>
-             <button id="btnRegisterAndLogin" class="mt-6 w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-indigo-700 transition duration-300 disabled:opacity-50" disabled>
-                Create New ID & Register
+             <button id="btnRegisterAndLogin" class="mt-6 w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-indigo-700 transition duration-300">
+                Create New ID
             </button>
         </div>
 
         <div id="authFeedback" class="hidden p-4 rounded-md text-sm mt-4"></div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.11.1/dist/ethers.umd.min.js"></script>
     <script src="config.js"></script>
+    <script src="supabase-auth.js"></script>
     <script>
         const Blockchain = {
             provider: null, wallet: null, contract: null,
@@ -110,25 +112,24 @@
                     this.wallet = new ethers.Wallet(AppConfig.SENDER_PRIVATE_KEY, this.provider);
                     this.contract = new ethers.Contract(AppConfig.CONTRACT_ADDRESS, AppConfig.CONTRACT_ABI, this.wallet);
                     await this.provider.getBlockNumber();
-                    localStorage.setItem('ganache_url', AppConfig.GANACHE_URL);
                     return true;
                 } catch (e) {
-                    console.error("Blockchain se connect nahi ho paya:", e);
-                    UI.showFeedback('authFeedback', "Blockchain connection failed. Please check the URL in config.js and ensure Ganache/Ngrok is running.", 'error');
+                    console.error("Blockchain connection failed:", e);
+                    UI.showFeedback('authFeedback', "Blockchain connection failed. Please check config.js.", 'error');
                     return false;
                 }
             },
 
             async handleTransaction(txPromise, feedbackElId) {
-                UI.showFeedback(feedbackElId, 'Transaction blockchain ko bhej rahe hain...', 'info');
+                UI.showFeedback(feedbackElId, 'Sending transaction to blockchain...', 'info');
                 try {
                     const tx = await txPromise;
-                    UI.showFeedback(feedbackElId, `Transaction bhej diya hai! Confirmation ka intezaar hai...`, 'info');
+                    UI.showFeedback(feedbackElId, `Transaction sent! Waiting for confirmation...`, 'info');
                     const receipt = await tx.wait();
-                    UI.showFeedback(feedbackElId, `Transaction safal raha!`, 'success');
+                    UI.showFeedback(feedbackElId, `Transaction successful!`, 'success');
                     return receipt;
                 } catch (e) {
-                    const reason = e.reason || e.message || "Transaction fail ho gaya.";
+                    const reason = e.reason || e.message || "Transaction failed.";
                     UI.showFeedback(feedbackElId, `Error: ${reason}`, 'error');
                     console.error(e);
                     return null;
@@ -138,12 +139,6 @@
 
         const UI = {
             init() {
-                Blockchain.init().then(connected => {
-                    if (connected) {
-                        document.getElementById('btnRegisterAndLogin').disabled = false;
-                        document.getElementById('btnLogin').disabled = false;
-                    }
-                });
                 document.getElementById('btnRegisterAndLogin').addEventListener('click', () => this.registerAndLogin());
                 document.getElementById('btnLogin').addEventListener('click', () => this.login());
 
@@ -177,21 +172,9 @@
                 el.style.display = 'block';
             },
             
-            getUserKey(actorId, role) {
-                return `ayurtrace_user_${actorId}_${role}`;
-            },
-
-            saveUserToLocalStorage(actorId, role, userData) {
-                localStorage.setItem(this.getUserKey(actorId, role), JSON.stringify(userData));
-            },
-
-            getUserFromLocalStorage(actorId, role) {
-                const data = localStorage.getItem(this.getUserKey(actorId, role));
-                return data ? JSON.parse(data) : null;
-            },
-            
             handleSuccessfulAuth(userData) {
-                const userKey = this.getUserKey(userData.actorId, userData.role);
+                const userKey = `ayurtrace_user_${userData.actorId}_${userData.role}`;
+                localStorage.setItem(userKey, JSON.stringify(userData));
                 sessionStorage.setItem('ayurtrace_currentUserKey', userKey);
                 window.location.href = 'dashboard.html';
             },
@@ -202,43 +185,40 @@
                 const fullName = document.getElementById('regFullName').value.trim();
                 const phone = document.getElementById('regPhone').value.trim();
                 const address = document.getElementById('regAddress').value.trim();
-                const role = document.getElementById('regActorRole').value;
+                const role = parseInt(document.getElementById('regActorRole').value);
 
                 if (!actorId || !password || !fullName || !address || !phone) {
-                    return this.showFeedback('authFeedback', "Kripya saari details bharein.", 'error');
+                    return this.showFeedback('authFeedback', "Please fill in all details.", 'error');
                 }
 
-                if (this.getUserFromLocalStorage(actorId, role)) {
-                    return this.showFeedback('authFeedback', `Error: Is role ke liye '${actorId}' ID pehle se register hai.`, 'error');
-                }
-                
-                const txPromise = Blockchain.contract.registerActor(actorId, role, fullName, address, phone);
-                const receipt = await Blockchain.handleTransaction(txPromise, "authFeedback");
+                this.showFeedback('authFeedback', 'Creating account in database...', 'info');
+                const newUserInDb = await signUp(actorId, password, fullName, phone, address, role);
 
-                if (receipt) {
-                    this.showFeedback('authFeedback', `${actorId} ka registration safal raha! Login kar rahe hain...`, 'success');
-                    const userData = { actorId, password, fullName, phone, address, role: parseInt(role) };
-                    this.saveUserToLocalStorage(actorId, role, userData);
-                    setTimeout(() => this.handleSuccessfulAuth(userData), 1500);
+                if (!newUserInDb) {
+                    return this.showFeedback('authFeedback', 'This Actor ID may already be registered for the selected role.', 'error');
                 }
+
+                this.showFeedback('authFeedback', `Account for ${actorId} created! Logging in...`, 'success');
+                this.handleSuccessfulAuth(newUserInDb);
             },
 
-            login() {
+            async login() {
                 const actorId = document.getElementById('loginActorId').value.trim();
                 const password = document.getElementById('loginPassword').value;
-                const role = document.getElementById('loginActorRole').value;
+                const role = parseInt(document.getElementById('loginActorRole').value);
 
                 if (!actorId || !password) {
-                    return this.showFeedback('authFeedback', "Kripya Actor ID aur Password daalein.", 'error');
+                    return this.showFeedback('authFeedback', "Please enter Actor ID and Password.", 'error');
                 }
 
-                const storedUser = this.getUserFromLocalStorage(actorId, role);
+                this.showFeedback('authFeedback', 'Logging in with Supabase...', 'info');
+                const storedUser = await signIn(actorId, password, role);
 
-                if (!storedUser || storedUser.password !== password) {
-                    return this.showFeedback('authFeedback', 'Galat Actor ID, Password, ya Role.', 'error');
+                if (!storedUser) {
+                    return this.showFeedback('authFeedback', 'Incorrect Actor ID, Password, or Role.', 'error');
                 }
 
-                this.showFeedback('authFeedback', 'Login safal! Dashboard par le ja rahe hain...', 'success');
+                this.showFeedback('authFeedback', 'Login successful! Redirecting...', 'success');
                 setTimeout(() => this.handleSuccessfulAuth(storedUser), 1000);
             },
         };
